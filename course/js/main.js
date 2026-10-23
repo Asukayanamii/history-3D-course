@@ -33,7 +33,80 @@
   var st = {
     themeId: "", theme: null, events: [], idx: -1, map: null, routes: null,
     playing: false, switching: false, seq: 0, demoTimer: 0, started: false,
-    layers: { routes: true, regions: true, rivers: true, places: true, events: true, relief: true, spin: false }
+    layers: { routes: true, regions: true, rivers: true, places: true, events: true, relief: true, vignette: true, spin: false }
+  };
+
+  /* ---------------- 场景工厂 ---------------- */
+  function battleTerrain(ev, cfg) {
+    var id = cfg.terrain;
+    if (id && HS.dem && HS.dem.has(id)) {
+      var def = HS.dem.def(id);
+      return { dem: id, bounds: def.bounds, size: [92, 74], exaggeration: 9, meshStep: 0.012, edgeFalloff: 0 };
+    }
+    return {
+      dem: "east-asia",
+      bounds: { west: ev.lon - 1.35, east: ev.lon + 1.35, south: ev.lat - 0.95, north: ev.lat + 0.95 },
+      size: [92, 74], exaggeration: 9, meshStep: 0.03, edgeFalloff: 0
+    };
+  }
+
+  function makeBattleScene(ev) {
+    var cfg = ev.battle || {};
+    var theme = st.theme || {};
+    var sides = cfg.sides || [
+      { id: "a", name: "攻方", color: (theme.meta && theme.meta.accent) || "#c8402f", short: "攻" },
+      { id: "b", name: "守方", color: "#6f8399", short: "守" }
+    ];
+    var detail = ev.detail || [];
+    var phases = cfg.phases || [
+      { at: 0.00, date: ev.shortDate || ev.date || "", label: "接战", log: detail[0] || ev.summary || "" },
+      { at: 0.28, date: ev.shortDate || ev.date || "", label: "相持", log: detail[1] || "" },
+      { at: 0.58, date: ev.shortDate || ev.date || "", label: "转折", log: detail[2] || ev.result || "" },
+      { at: 0.82, date: ev.shortDate || ev.date || "", label: "收束", log: detail[3] || ev.result || "" }
+    ];
+    return {
+      type: "battle",
+      title: ev.title + " · 战场情景",
+      subtitle: (ev.shortDate || ev.date || "") + " · " + sides.map(function (s) { return s.name; }).join(" vs "),
+      note: "地形为真实 DEM；兵力、编制、阵型与战线为教学情景示意，不是精确历史阵图。",
+      duration: cfg.duration || 24,
+      seed: cfg.seed || (U.hash(ev.id) % 100000),
+      preset: cfg.preset || "field",
+      terrain: battleTerrain(ev, cfg),
+      sides: sides,
+      phases: phases,
+      text: { time: ev.date, place: ev.place, figures: ev.figures, result: ev.result, impact: ev.impact },
+      image: ev.image && ev.image.file
+    };
+  }
+
+  HS.sceneFor = function (ev, theme) {
+    if (!ev) return null;
+    if (ev.scene) return ev.scene;
+    if (ev.kind === "war") return makeBattleScene(ev, theme || st.theme);
+    return null;
+  };
+
+  HS.sceneForVR = function (ev) {
+    if (!ev || !ev.image || !ev.image.file) return null;
+    var pano = ev.vr && ev.vr.pano;
+    if (!pano) {
+      var m = /^assets\/events\/([^/]+)\/([^/.]+)\.jpg$/.exec(ev.image.file);
+      if (m) pano = "assets/vr/" + m[1] + "/" + m[2] + ".jpg";
+    }
+    var item = pano ? HS.assets.byPath(pano) : null;
+    var usable = !!item && (item.status === "ready" || item.status === "needs-review");
+    return {
+      type: "vr",
+      title: ev.title + " · 360° 环视",
+      subtitle: (ev.shortDate || ev.date || "") + " · " + (ev.place || ""),
+      note: usable ? "360° 环视：2:1 全景由 AI 插画扩展生成，不是全景摄影；可替换为 GPT-Image2 真全景。" : "图片环视，不是 360° 全景。",
+      pano: usable ? pano : "",
+      image: ev.image.file,
+      hotspots: (ev.vr && ev.vr.hotspots) || [],
+      text: { time: ev.date, place: ev.place, figures: ev.figures, result: ev.result, impact: ev.impact },
+      auto: true
+    };
   };
 
   /* ---------------- 场景构建 / 释放 ---------------- */
@@ -120,6 +193,7 @@
     ui.setNow(ev, idx, st.events.length);
     st.routes.setCurrent(ev);
     st.map.highlight(ev.regionId);
+    if (st.map.setVignette) st.map.setVignette(ev);
     sfx.step();
 
     var t = st.routes.nodeT(ev.routeId, ev.nodeId), dur = 0;
@@ -150,6 +224,15 @@
     if (!st.theme) return;
     closeCard();
     return HS.camera.flyTo(st.theme.meta.home || { dist: 44, polar: 40 });
+  }
+
+  function enterVR(ev) {
+    ev = ev || st.events[st.idx];
+    if (!ev) { ui.toast("请先选择一个事件"); return false; }
+    var data = HS.sceneForVR(ev);
+    if (!data) { ui.toast("该事件暂无可用的 360° 图景"); return false; }
+    if (st.playing) pause(true);
+    return HS.scene.enter(data, ev);
   }
 
   /* ---------------- 主题切换 ---------------- */
@@ -281,10 +364,13 @@
   ui.on("scene", function () {
     var ev = st.events[st.idx];
     if (!ev) { ui.toast("请先选择一个事件"); return; }
-    if (!ev.scene) { ui.toast("该事件暂无 3D 场景，待补"); return; }
+    var scene = HS.sceneFor(ev, st.theme);
+    if (!scene) { ui.toast("该事件暂无 3D 场景，待补"); return; }
     if (st.playing) pause(true);
-    if (!HS.scene.enter(ev.scene, ev)) ui.toast("场景数据不完整");
+    if (!HS.scene.enter(scene, ev)) ui.toast("场景数据不完整");
   });
+  ui.on("vr", function () { enterVR(); });
+  ui.on("scene-vr", function () { enterVR(); });
   ui.on("scene-exit", function () { HS.scene.exit(); });
   ui.on("scene-play", function () { HS.scene.toggle(); });
   ui.on("war-speed", function (btn) {
@@ -319,10 +405,22 @@
 
     if (HS.scene && HS.scene.active) {
       var sc = HS.scene.state();
-      if (sc.type === "war") {
+      if (sc.type === "vr") {
+        if (k === "Escape" || k === "e" || k === "E" || k === "v" || k === "V") HS.scene.exit();
+        else if (k === " " || k === "Spacebar") HS.scene.toggle();
+        else if (k === "1" || k === "2" || k === "3") HS.scene.setSpeed(k === "3" ? 4 : +k);
+        else if (k === "Home") HS.vr360.reset();
+      } else if (sc.type === "war") {
         if (k === "1" || k === "2" || k === "3") HS.scene.setSpeed(k === "3" ? 4 : +k);
         else if (k === "r" || k === "R") HS.scene.restart();
         else if (k === "l" || k === "L") ui.toggleWarLayers();
+        else if (k === "v" || k === "V") enterVR();
+        else if (k === "Escape" || k === "e" || k === "E") HS.scene.exit();
+        else if (k === " " || k === "Spacebar") HS.scene.toggle();
+      } else if (sc.type === "battle" || sc.type === "court") {
+        if (k === "1" || k === "2" || k === "3") HS.scene.setSpeed(k === "3" ? 4 : +k);
+        else if (k === "r" || k === "R") HS.scene.restart();
+        else if (k === "v" || k === "V") enterVR();
         else if (k === "Escape" || k === "e" || k === "E") HS.scene.exit();
         else if (k === " " || k === "Spacebar") HS.scene.toggle();
       } else if (k === "Escape" || k === "e" || k === "E") {
@@ -349,8 +447,12 @@
       case "q": case "Q": ask(); break;
       case "e": case "E":
         var sev = st.events[st.idx];
-        if (sev && sev.scene) { if (st.playing) pause(true); HS.scene.enter(sev.scene, sev); }
+        var sscene = sev && HS.sceneFor(sev, st.theme);
+        if (sscene) { if (st.playing) pause(true); HS.scene.enter(sscene, sev); }
         else ui.toast("该事件暂无 3D 场景，待补");
+        break;
+      case "v": case "V":
+        enterVR();
         break;
       case "p": case "P": st.playing ? pause(false) : play(); break;
       case "l": case "L": ui.toggleLayers(); break;
@@ -402,8 +504,22 @@
     toggleLayer: function (name, on) { applyLayer(name, on == null ? !st.layers[name] : !!on); },
     enterScene: function (id) {
       var ev = id ? st.events.filter(function (e) { return e.id === id; })[0] : st.events[st.idx];
-      if (!ev || !ev.scene) return false;
-      return HS.scene.enter(ev.scene, ev);
+      var scene = ev && HS.sceneFor(ev, st.theme);
+      if (!scene) return false;
+      return HS.scene.enter(scene, ev);
+    },
+    enterVR: function (id) {
+      var ev = id ? st.events.filter(function (e) { return e.id === id; })[0] : st.events[st.idx];
+      return enterVR(ev);
+    },
+    exitVR: function () { return HS.scene.exit(); },
+    sceneFor: function (id) {
+      var ev = id ? st.events.filter(function (e) { return e.id === id; })[0] : st.events[st.idx];
+      return ev ? HS.sceneFor(ev, st.theme) : null;
+    },
+    sceneForVR: function (id) {
+      var ev = id ? st.events.filter(function (e) { return e.id === id; })[0] : st.events[st.idx];
+      return ev ? HS.sceneForVR(ev) : null;
     },
     exitScene: function () { return HS.scene.exit(); },
     toggleScene: function () { return HS.scene.toggle(); },
@@ -417,7 +533,7 @@
         theme: st.themeId, eventId: ev ? ev.id : "", routeId: r.routeId, progress: r.progress,
         playing: st.playing, muted: sfx.muted, index: st.idx, total: st.events.length,
         cardOpen: ui.cardOpen, flying: HS.camera.flying, switching: st.switching, modal: ui.anyModal(), dwell: params.dwell,
-        scene: !!ss.active, sceneType: ss.type || "",
+        scene: !!ss.active, sceneType: ss.type || "", sceneState: ss,
         war: ss.type === "war" ? ss : null
       };
     },

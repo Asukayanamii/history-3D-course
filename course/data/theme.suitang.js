@@ -29,6 +29,7 @@ window.HISTORY_THEMES.suitang = {
     projection: "equirect",
     bounds: { west: 100, east: 123, south: 28, north: 45 },
     relief: { mode: "stylized", amplitude: 1.0, texture: "" },
+    terrain: { mode: "dem", dem: "east-asia", exaggeration: 22, meshStep: 0.10, maxHeight: 5.2, edgeFalloff: 1.8 },
     regions: [
       { id: "tang", name: "唐廷", color: "#c39a3e", opacity: 0.40, highlight: true,
         labelAt: [109.0, 32.2], labelSize: "large", radiusKm: 720, polygon: [],
@@ -110,6 +111,8 @@ window.HISTORY_THEMES.suitang = {
   events: [
     {
       id: "e01", order: 1, date: "755年11月", shortDate: "755.11", title: "范阳起兵",
+      kind: "war",
+      battle: { preset: "field", terrain: "hebei", sides: [{ id: "yan", name: "燕（安禄山）", color: "#9a4636", short: "燕" }, { id: "tang", name: "唐廷", color: "#c39a3e", short: "唐" }] },
       place: "范阳（今北京一带）", regionId: "yan", routeId: "r-rebel", nodeId: "fanyang",
       lon: 116.35, lat: 39.85,
       summary: "755年十一月，安禄山以讨杨国忠为名，在范阳起兵南下。他兼任平卢、范阳、河东三镇节度使，掌握重兵，叛军迅速席卷河北；安史之乱由此爆发，唐朝由盛转衰。",
@@ -137,6 +140,8 @@ window.HISTORY_THEMES.suitang = {
     },
     {
       id: "e02", order: 2, date: "756年1月", shortDate: "756.1", title: "洛阳失守",
+      kind: "war",
+      battle: { preset: "siege", terrain: "guanzhong", sides: [{ id: "yan", name: "燕（安禄山）", color: "#9a4636", short: "燕" }, { id: "tang", name: "唐廷", color: "#c39a3e", short: "唐" }] },
       place: "洛阳", regionId: "yan", routeId: "r-rebel", nodeId: "luoyang",
       lon: 112.45, lat: 34.62,
       summary: "756年正月，叛军攻占洛阳，安禄山在洛阳称帝，国号大燕，年号圣武。洛阳失守使唐朝失去东都，关中门户暴露；唐廷急调哥舒翰守潼关，战争进入相持阶段。",
@@ -164,6 +169,8 @@ window.HISTORY_THEMES.suitang = {
     },
     {
       id: "e03", order: 3, date: "756年6月", shortDate: "756.6", title: "潼关失守",
+      kind: "war",
+      battle: { preset: "ambush", terrain: "guanzhong", sides: [{ id: "tang", name: "唐军", color: "#c39a3e", short: "唐" }, { id: "yan", name: "燕军", color: "#9a4636", short: "燕" }] },
       place: "潼关", regionId: "tang", routeId: "r-rebel", nodeId: "tongguan",
       lon: 110.29, lat: 34.48,
       summary: "756年六月，唐玄宗与杨国忠催逼哥舒翰出关迎战，唐军在灵宝西原中伏大败，潼关失守。关中门户洞开，长安危急；唐廷的战略失误加速了长安陷落。",
@@ -191,6 +198,8 @@ window.HISTORY_THEMES.suitang = {
     },
     {
       id: "e04", order: 4, date: "756年7月", shortDate: "756.7", title: "长安陷落",
+      kind: "war",
+      battle: { preset: "field", terrain: "guanzhong", sides: [{ id: "yan", name: "燕军", color: "#9a4636", short: "燕" }, { id: "tang", name: "唐军", color: "#c39a3e", short: "唐" }] },
       place: "长安（今陕西西安）", regionId: "tang", routeId: "r-rebel", nodeId: "changan",
       lon: 108.94, lat: 34.34,
       summary: "756年，潼关失守后，唐玄宗弃长安西逃入蜀。途中马嵬驿发生兵变，杨国忠被杀，杨贵妃被迫自尽；叛军随后进入长安，唐朝中央权威受到沉重打击，肃宗在灵武另立朝廷。",
@@ -218,6 +227,7 @@ window.HISTORY_THEMES.suitang = {
     },
     {
       id: "e05", order: 5, date: "756年7月", shortDate: "756.7", title: "灵武即位",
+      kind: "politics",
       place: "灵武（今宁夏灵武一带）", regionId: "tang", routeId: "r-tang", nodeId: "lingwu",
       lon: 106.34, lat: 38.10,
       summary: "756年七月，太子李亨在灵武即位，是为唐肃宗，遥尊玄宗为太上皇。灵武朝廷重新集结唐军，成为平叛的政治中心；此后唐军借回纥兵反攻，逐步收复两京。",
@@ -245,6 +255,8 @@ window.HISTORY_THEMES.suitang = {
     },
     {
       id: "e06", order: 6, date: "757年9—10月", shortDate: "757.9", title: "收复两京",
+      kind: "war",
+      battle: { preset: "field", terrain: "guanzhong", sides: [{ id: "tang", name: "唐军 / 回纥", color: "#c39a3e", short: "唐" }, { id: "yan", name: "燕军", color: "#9a4636", short: "燕" }] },
       place: "长安、洛阳", regionId: "tang", routeId: "r-tang", nodeId: "luoyang",
       lon: 112.45, lat: 34.62,
       summary: "757年，唐军借回纥兵反攻，先在香积寺之战收复长安，随后收复洛阳。两京光复扭转了战局，但安史之乱直到763年才最终结束；唐朝由盛转衰、藩镇割据加深的局面已难挽回。",

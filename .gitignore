@@ -10,3 +10,6 @@ coverage
 .env.local
 .env.development
 .env.production
+tools/.dem-cache/
+tools/.build-dem.log
+tools/.qa-*.png

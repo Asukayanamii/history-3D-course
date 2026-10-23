@@ -2,9 +2,24 @@
 
 > 日期：2026-10-23
 > 代码位置：`course/`
-> 清单源：`course/data/assets.js`（25 条）
+> 清单源：`course/data/assets.js`（图片 + 21 条 2:1 全景；以文件为准）
 > 状态：`missing` 缺文件 / `placeholder` 占位 / `ready` 就绪 / `needs-review` 待审
 > 原则：外部网站/地图/史料必须标来源；AI 图不逐张标来源，只在主页/页脚统一声明；许可谁取用谁核实。
+
+---
+
+## v0.4 新增/变更槽位（2026-10-23）
+
+| 资源 | 当前 | 状态 | 替换/验收 |
+|---|---|---|---|
+| `assets/events/wudai/e11.jpg` | 程序化朝堂占位图 | `placeholder` | 用 GPT-Image2 真插画替换；brief 见 `docs/history/五代十国_图片脚本.md` |
+| `assets/vr/<theme>/<event>.jpg` | 16:9 插画扩展的 2:1 全景示意（21 张） | `ready`（示意） | 真全景按 `docs/prompts/04_GPT-Image2_VR全景.md` 替换；不要被 `build_vr_panos.py` 覆盖 |
+| `course/data/dem/regions.js` | SRTM/GMTED/ETOPO1 派生 DEM | 已完成 | 来源/许可见 `docs/handoff/DEM_SOURCES.md`；勿手改 |
+| `map-relief` 平面纹理 | 已退役 | `retired` | 不再使用；真实地形由 DEM 提供 |
+| `battle` 场景 | 所有 war 事件自动生成 | 已完成 | 地形真实；兵力/阵型为示意 |
+| `court` 场景 | e11 世宗改革 | 已完成 | 台词为情景复原；待史实审核 |
+| `vr` 360° 查看器 | CSS 全景 + 热点 | 已完成 | `V` 进入/退出；真全景待替换 |
+| 地图微缩情景 | 战争/朝堂 | 已完成 | 图层可关 |
 
 ---
 
@@ -61,7 +76,7 @@
 | M05 | 未单列势力 | `map.omitted`：大理、吐蕃、河西、清源军 | 完成 | 史实审核 | 图例可见 |
 | M06 | 河流 | 4 条示意折线 | `approx` | DeepSeek/耿雨 | 走向合理、标注不遮挡 |
 | M07 | 地名 | 25 个 | `approx` | DeepSeek/耿雨 | 坐标在 bounds 内、名称正确 |
-| M08 | 真实 DEM/地形纹理 | 未使用；程序化沙盘 | 未做 | 后续 M4 | 不影响 Demo |
+| M08 | 真实 DEM/地形纹理 | `course/data/dem/regions.js`（east-asia + 4 战场） | 已完成（真实高程，垂直夸张） | 后续可提高分辨率 | 来源/许可见 `DEM_SOURCES.md`；非导航 |
 | M09 | 历史地图授权/来源记录 | `docs/history/来源与许可核查.md` + `credits.sourceRecords` | 完成（参考级） | 取用者 | 站点、链接、参考图幅、访问日期、许可结论 |
 
 **多边形来源说明**：`theme.wudai.js` 的 `regions[].sourceNote` 已写“示意、非精确边界”；正式使用前由历史组核对。**不能把多边形说成精确疆域。**
@@ -73,13 +88,13 @@
 | ID | 资源 | 当前实现 | 状态 | 谁来替换 | 验收 |
 |---|---|---|---|---|---|
 | S01 | 高平之战 war 兵棋推演 | `scene.js` + `theme.wudai.js#e06.scene` | 已完成（自动推演） | Claude | 9 省/6 单位/战线/兵力/战报正常；文字齐全 |
-| S02 | 其他战役场景 | 未做 | 未做 | 后续 Claude | 复用 `war` 接口，只加省份/单位数据 |
-| S03 | 朝堂辩论场景 | 未做 | 未做 | 后续 M4 | 新 `scene.type: "court"` |
+| S02 | 其他战役场景 | `battle` 自动生成（field/siege/cavalry/ambush/river） | 已完成（示意） | 可按重点战役精调 | 所有 war 事件可进入；地形真实、兵力示意 |
+| S03 | 朝堂辩论场景 | `court`（e11 世宗改革） | 已完成 | 史实/台词审核 | 皇帝/文官/侍卫；阶段发言 |
 | S04 | 建筑外观场景 | 未做 | 未做 | 后续 M4 | 新 `scene.type: "architecture"` |
-| S05 | VR/第一人称 | 未做 | 未做 | 长期 | 不在 Demo 范围 |
+| S05 | VR/第一人称 | 360° 图片环视（CSS）+ 热点 | 已完成（示意全景） | 用 GPT-Image2 真全景替换 | 不是 WebXR/头显；2:1 扩展示意 |
 | S06 | war 省份/边界/单位数据 | `theme.wudai.js#e06.scene` | 已完成（示意） | DeepSeek/耿雨核对 | 省份控制/兵力/战线为示意；不编造精确兵力 |
 
-场景全部由程序化几何体生成，**不需要 GPT-Image2 出图**；不要把场景渲染图当作历史影像。战线由省份 owner 派生，不写手工关键帧。
+war/battle/court 场景全部由程序化几何体生成，**不需要 GPT-Image2 出图**；`vr` 需要图片（当前为 2:1 扩展示意，真全景待替换）。不要把场景渲染图当作历史影像。战线由省份 owner 派生，不写手工关键帧。
 
 ---
 

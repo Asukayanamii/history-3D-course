@@ -30,6 +30,7 @@ window.HISTORY_THEMES.song = {
     projection: "equirect",
     bounds: { west: 100, east: 125, south: 20, north: 44 },
     relief: { mode: "stylized", amplitude: 1.0, texture: "" },
+    terrain: { mode: "dem", dem: "east-asia", exaggeration: 22, meshStep: 0.10, maxHeight: 5.2, edgeFalloff: 1.8 },
     regions: [
       { id: "song", name: "北宋", color: "#b05a3c", opacity: 0.42, highlight: true,
         labelAt: [113.6, 31.2], labelSize: "large", radiusKm: 820, polygon: [],
@@ -105,6 +106,8 @@ window.HISTORY_THEMES.song = {
   events: [
     {
       id: "e01", order: 1, date: "1004年9月", shortDate: "1004.9", title: "辽军南下",
+      kind: "war",
+      battle: { preset: "cavalry", terrain: "hebei", sides: [{ id: "liao", name: "辽", color: "#6f8399", short: "辽" }, { id: "song", name: "北宋", color: "#b05a3c", short: "宋" }] },
       place: "燕京（今北京）", regionId: "liao", routeId: "r-liao", nodeId: "yanjing",
       lon: 116.40, lat: 39.90,
       summary: "1004年秋，辽圣宗与萧太后率军南下，宋辽战事再起。辽军绕过宋军坚固城防，一路南进，直逼黄河沿岸的澶州；北宋朝廷震动，真宗面临和战抉择，这是澶渊之盟的直接背景。",
@@ -132,6 +135,8 @@ window.HISTORY_THEMES.song = {
     },
     {
       id: "e02", order: 2, date: "1004年11月", shortDate: "1004.11", title: "瀛州之战",
+      kind: "war",
+      battle: { preset: "siege", terrain: "hebei", sides: [{ id: "liao", name: "辽", color: "#6f8399", short: "辽" }, { id: "song", name: "北宋", color: "#b05a3c", short: "宋" }] },
       place: "瀛州（今河北河间）", regionId: "song", routeId: "r-liao", nodeId: "yingzhou",
       lon: 116.00, lat: 38.40,
       summary: "1004年十一月，辽军进攻瀛州，宋知州李延渥率军民坚守，辽军攻城十余日不下，伤亡较重。瀛州之战迟滞了辽军南下，但未能改变整体战局；辽军随后绕过瀛州继续南进。",
@@ -159,6 +164,8 @@ window.HISTORY_THEMES.song = {
     },
     {
       id: "e03", order: 3, date: "1004年12月", shortDate: "1004.12", title: "澶州亲征",
+      kind: "war",
+      battle: { preset: "river", terrain: "huainan", sides: [{ id: "song", name: "北宋", color: "#b05a3c", short: "宋" }, { id: "liao", name: "辽", color: "#6f8399", short: "辽" }] },
       place: "澶州（今河南濮阳一带）", regionId: "song", routeId: "r-song", nodeId: "chanzhou",
       lon: 115.00, lat: 35.70,
       summary: "1004年十二月，宋真宗在寇准等人力劝下亲征澶州，渡过黄河登上北城门楼，宋军士气大振。真宗亲征为宋辽议和提供了军事与政治筹码；辽军孤军深入，也面临补给与退路压力。",
@@ -185,6 +192,7 @@ window.HISTORY_THEMES.song = {
     },
     {
       id: "e04", order: 4, date: "1005年1月", shortDate: "1005.1", title: "澶渊之盟",
+      kind: "diplomacy",
       place: "澶州", regionId: "song", routeId: "r-song", nodeId: "chanzhou",
       lon: 115.00, lat: 35.70,
       summary: "1005年一月，宋辽在澶州订立盟约：约为兄弟之国，宋每年给辽银十万两、绢二十万匹，双方以白沟河为界。此后宋辽边境相对安定，榷场贸易发展；岁币也加重了北宋财政负担，评价应并陈和平红利与财政代价。",

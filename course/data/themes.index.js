@@ -6,11 +6,11 @@ window.HISTORY_PROJECT = {
   name: "史境",                       // 占位项目名（R09，可替换）
   fullName: "史境 · 三维历史沙盘",
   subtitle: "面向中学历史课堂的三维时空交互课件",
-  version: "0.3.0-demo",
-  revision: "v0.3",
+  version: "0.4.0-demo",
+  revision: "v0.4",
   updated: "2026-10-23",
   status: "demo",
-  disclaimer: "历史地图为示意性简化，不是精确疆域；外部地图参考见「来源与授权」；插画与封面为 AI 生成的艺术复原示意，不是历史影像。"
+  disclaimer: "地形为 SRTM/GMTED/ETOPO1 真实高程（垂直夸张，非导航数据）；历史疆域仍为示意；插画/全景为 AI 或程序化艺术复原示意，不是历史影像/全景摄影。"
 };
 
 window.HISTORY_THEME_ORDER = ["suitang", "wudai", "song"];

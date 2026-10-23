@@ -76,6 +76,9 @@
     var api = { group: group, routes: {}, order: [], active: null, markers: [], labels: [], layers: { routes: [routeGroup], events: [eventGroup] } };
     var glow = HS.glowTexture("rgba(255,255,255,1)", "rgba(255,255,255,0)");
     var accent = theme.meta.accent || "#c8402f";
+    var hAtLL = mapApi && mapApi.heightAt ? mapApi.heightAt : function () { return 0; };
+    var hAtXZ = mapApi && mapApi.heightAtXZ ? mapApi.heightAtXZ : null;
+    var hAt = function (lon, lat) { return hAtLL(lon, lat); };
 
     /* ---- 路线 ---- */
     (theme.routes || []).forEach(function (rt) {
@@ -92,12 +95,12 @@
         var hSeg = U.clamp(chord * 0.14, 0.12, 4);
         for (var k = 0; k < per; k++) {
           var f = k / per, v = cr.getPoint((s + f) / segs);
-          v.y = 0.32 + hSeg * Math.sin(Math.PI * f);
+          v.y = hAt(P.lon(v.x), P.lat(v.z)) + 0.32 + hSeg * Math.sin(Math.PI * f);
           samples.push(v);
         }
       }
       var end = pts[pts.length - 1].clone();
-      end.y = 0.32;
+      end.y = hAt(P.lon(end.x), P.lat(end.z)) + 0.32;
       samples.push(end);
       segStart.push(samples.length - 1);
 
@@ -112,7 +115,7 @@
 
       // 投在沙面上的影子，弧长比例与管道保持一致
       var flat = samples.map(function (v) { return { x: v.x, z: v.z }; });
-      var sgeo = HS.ribbon(flat, 0.2, false, 0.06);
+      var sgeo = HS.ribbon(flat, 0.2, false, 0.06, hAtXZ);
       var uv = sgeo.getAttribute("uv");
       for (i = 0; i < samples.length; i++) { uv.setX(i * 2, path.cum[i] / path.total); uv.setX(i * 2 + 1, path.cum[i] / path.total); }
       uv.needsUpdate = true;
@@ -171,7 +174,8 @@
     var ringGeo = new THREE.RingGeometry(0.62, 0.78, 32);
     ringGeo.rotateX(-Math.PI / 2);
     groups.forEach(function (g) {
-      var pos = P.vec(g.at[0], g.at[1], 0.11);
+      var gy = hAt(g.at[0], g.at[1]);
+      var pos = P.vec(g.at[0], g.at[1], gy + 0.11);
       var disc = new THREE.Mesh(discGeo, new THREE.MeshBasicMaterial({ color: new THREE.Color(g.color), transparent: true, opacity: 0.85, depthWrite: false }));
       disc.position.copy(pos);
       disc.renderOrder = 8;
@@ -191,7 +195,7 @@
         HS.emit("pick-event", b ? b.getAttribute("data-ev") : g.events[0].id);
         e.stopPropagation();
       });
-      g.item = HS.labels.add({ el: el, pos: P.vec(g.at[0], g.at[1], 0.4), layer: "events", priority: 10, anchor: "left" });
+      g.item = HS.labels.add({ el: el, pos: P.vec(g.at[0], g.at[1], gy + 0.4), layer: "events", priority: 10, anchor: "left" });
       g.el = el;
       g.disc = disc;
       api.labels.push(g.item);
@@ -209,13 +213,14 @@
         var at = [n.lon, n.lat];
         if (wayTaken.some(function (t) { return near(t, at, 0.14); })) return;
         wayTaken.push(at);
+        var wy = hAt(n.lon, n.lat);
         var dot = new THREE.Mesh(dotGeo, new THREE.MeshBasicMaterial({ color: new THREE.Color(R.data.color || accent), transparent: true, opacity: 0.8, depthWrite: false }));
-        dot.position.copy(P.vec(n.lon, n.lat, 0.1));
+        dot.position.copy(P.vec(n.lon, n.lat, wy + 0.1));
         dot.renderOrder = 7;
         routeGroup.add(dot);
         if (n.label === false || placePts.some(function (t) { return near(t, at, 0.14); })) return;
         var el = U.el("div", "lb-way", "<div class='lb-in'><i></i><span>" + U.esc(n.name) + "</span></div>");
-        api.labels.push(HS.labels.add({ el: el, pos: P.vec(n.lon, n.lat, 0.3), layer: "routes", priority: 4, anchor: "left" }));
+        api.labels.push(HS.labels.add({ el: el, pos: P.vec(n.lon, n.lat, wy + 0.3), layer: "routes", priority: 4, anchor: "left" }));
       });
     });
 
@@ -300,7 +305,7 @@
           b.classList.toggle("is-cur", !!(ev && e === ev));
           b.classList.toggle("is-done", !!(ev && e.order < cur));
         });
-        if (has) { beacon.position.set(P.x(g.at[0]), 0, P.z(g.at[1])); beacon.visible = true; }
+        if (has) { beacon.position.set(P.x(g.at[0]), hAt(g.at[0], g.at[1]), P.z(g.at[1])); beacon.visible = true; }
       });
       if (!ev) beacon.visible = false;
     };

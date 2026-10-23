@@ -15,7 +15,9 @@
 
   var LEVEL_TEXT = { consensus: "教材共识", debate: "学界有争议", tradition: "后世传说 / 文学叙述", uncertain: "存疑" };
   var STATUS_TEXT = { placeholder: "占位 · 待核订", sourced: "已补来源 · 待审核", reviewed: "已审核" };
+  var KIND_TEXT = { war: "战争", politics: "政治", reform: "改革", diplomacy: "外交" };
   var USAGE_TEXT = { reference: "参考", image: "图片", data: "随附使用" };
+  var SIDE_COLOR = { reform: "#c9a865", cautious: "#8a9b6a", neutral: "#7f8b9a", conservative: "#9a6a55" };
 
   ui.init = function () {
     var proj = window.HISTORY_PROJECT || {};
@@ -87,6 +89,7 @@
 
   /* ---------------- 主题 ---------------- */
   ui.setTheme = function (theme) {
+    ui.theme = theme;
     var m = theme.meta;
     document.documentElement.style.setProperty("--accent", m.accent || "#c8402f");
     $("themeTitle").textContent = m.title + (m.subtitle ? " · " + m.subtitle : "");
@@ -113,11 +116,15 @@
     });
     var omitted = (theme.map.omitted || []).map(function (o) { return o.name; }).filter(Boolean);
     var snap = theme.map.mapSnapshot || m.periodLabel || "";
+    var terr = theme.map.terrain && theme.map.terrain.mode === "dem"
+      ? "地形：SRTM/GMTED/ETOPO1 真实高程（垂直夸张 " + (theme.map.terrain.exaggeration || 14) + "×，非导航数据）"
+      : "地形：程序化示意";
     $("legendNote").innerHTML =
       (key.length ? "<span class='key-swatch'></span>重点政权：" + U.esc(key.join("、")) + "<br>" : "") +
       (snap ? "地图快照：" + U.esc(snap) + "<br>" : "") +
       (omitted.length ? "未单列：" + U.esc(omitted.join("、")) + "<br>" : "") +
-      U.esc(m.periodLabel || "") + " 形势示意<br><span class='muted'>历史地图为示意；外部来源与许可见「来源与授权」</span>";
+      U.esc(terr) + "<br>" +
+      U.esc(m.periodLabel || "") + " 形势示意<br><span class='muted'>历史疆域为示意；外部来源与许可见「来源与授权」</span>";
 
     // 时间轴
     var evs = HS.eventsOf(theme);
@@ -187,6 +194,7 @@
     (ev.detail || []).slice(0, 5).forEach(function (d) { ul.appendChild(U.el("li", "", U.esc(d))); });
 
     var chips = [];
+    if (ev.kind) chips.push("<span class='chip chip-kind kind-" + U.esc(ev.kind) + "'>" + U.esc(KIND_TEXT[ev.kind] || ev.kind) + "</span>");
     if (ev.status !== "reviewed") chips.push("<span class='chip chip-ph'>" + U.esc(STATUS_TEXT[ev.status] || STATUS_TEXT.placeholder) + "</span>");
     var lv = ev.historiography && ev.historiography.level;
     if (lv && lv !== "consensus") chips.push("<span class='chip chip-hist' title='" + U.esc(ev.historiography.note || "") + "'>" + U.esc(LEVEL_TEXT[lv] || lv) + "</span>");
@@ -213,11 +221,17 @@
     var prev = document.querySelector("#card [data-act=prev]"), next = document.querySelector("#card [data-act=next]");
     prev.disabled = idx <= 0;
     next.disabled = idx >= total - 1;
+    var scene = HS.sceneFor ? HS.sceneFor(ev, ui.theme) : ev.scene;
     var sb = $("sceneBtn"), sbn = $("sceneBtnNote");
     if (sb) {
-      sb.disabled = !ev.scene;
-      sb.title = ev.scene ? "进入 3D 全知场景（E）" : "该事件暂无 3D 场景，待补";
-      if (sbn) sbn.hidden = !!ev.scene;
+      sb.disabled = !scene;
+      sb.title = scene ? "进入 3D 全知场景（E）" : (ev.kind === "war" ? "该战争场景数据缺失" : "该事件暂无 3D 场景，待补");
+      if (sbn) sbn.hidden = !!scene;
+    }
+    var vrb = $("vrBtn");
+    if (vrb) {
+      vrb.hidden = !(ev.image && ev.image.file);
+      vrb.title = "360° 环视（V）";
     }
     document.querySelector("#card .card-body").scrollTop = 0;
   };
@@ -241,9 +255,12 @@
 
   ui.openScene = function (data, ev) {
     data = data || {};
-    ["warSides", "warTimeline", "warSpeed", "warRestart", "warLogWrap", "warLayersWrap"].forEach(function (id) {
+    ["warSides", "warTimeline", "warSpeed", "warRestart", "warLogWrap", "warLayersWrap", "courtSpeakerWrap"].forEach(function (id) {
       var el = $(id); if (el) el.hidden = true;
     });
+    var vrb = $("sceneVrBtn"); if (vrb) vrb.hidden = true;
+    if ($("courtSpeaker")) $("courtSpeaker").textContent = "";
+    if (HS.vr360) HS.vr360.hide();
     var t = data.text || {};
     $("sceneTitle").textContent = data.title || (ev && ev.title) || "3D 场景";
     $("sceneSub").textContent = data.subtitle || "";
@@ -266,9 +283,10 @@
 
   ui.closeScene = function () {
     $("sceneView").hidden = true;
-    ["warSides", "warTimeline", "warSpeed", "warRestart", "warLogWrap", "warLayersWrap"].forEach(function (id) {
+    ["warSides", "warTimeline", "warSpeed", "warRestart", "warLogWrap", "warLayersWrap", "courtSpeakerWrap"].forEach(function (id) {
       var el = $(id); if (el) el.hidden = true;
     });
+    if (HS.vr360) HS.vr360.hide();
     ui.hideWarTip();
   };
   ui.setScenePlaying = function (on) {
@@ -311,6 +329,91 @@
     ui.setWarSpeed(1);
     ui.setScenePlaying(true);
     ui.setWarPhase(null, 0, -1, ui.warPhases);
+    ui.setSceneVrAvailable(!!(ev && ev.image));
+    ui.setSceneKicker("兵棋推演 · 战术示意");
+  };
+
+  ui.setSceneVrAvailable = function (on) {
+    var b = $("sceneVrBtn");
+    if (b) b.hidden = !on;
+  };
+
+  ui.setSceneKicker = function (text) {
+    var el = $("sceneKicker");
+    if (el) el.textContent = text || "";
+  };
+
+  function buildPhaseStrip(data) {
+    var wrap = $("warPhases");
+    wrap.innerHTML = "";
+    ui.warPhases = data.phases || [];
+    ui.warPhases.forEach(function (p, i) {
+      var b = U.el("button", "war-phase", "<i></i><span>" + U.esc(p.date || "") + "</span><b>" + U.esc(p.label || "") + "</b>");
+      b.addEventListener("click", function () { fire("war-phase", i); });
+      wrap.appendChild(b);
+    });
+  }
+
+  ui.openBattleScene = function (data, ev) {
+    ui.openScene(data, ev);
+    ["warSides", "warLayersWrap", "courtSpeakerWrap"].forEach(function (id) { var e = $(id); if (e) e.hidden = true; });
+    ["warTimeline", "warSpeed", "warRestart", "warLogWrap"].forEach(function (id) { var e = $(id); if (e) e.hidden = false; });
+    ui.setSceneVrAvailable(!!(ev && ev.image));
+    ui.setSceneKicker("战场情景 · 真实地形");
+    $("warLog").innerHTML = "";
+    var legend = $("sceneLegend");
+    legend.innerHTML = "";
+    (data.sides || []).forEach(function (s) {
+      legend.appendChild(U.el("span", "unit", "<i style='--c:" + U.esc(s.color || "#888") + "'></i>" + U.esc(s.name)));
+    });
+    buildPhaseStrip(data);
+    ui.setWarSpeed(1);
+    ui.setScenePlaying(true);
+    ui.setWarPhase(null, 0, -1, ui.warPhases);
+  };
+
+  ui.openCourtScene = function (data, ev) {
+    ui.openScene(data, ev);
+    ["warSides", "warLayersWrap"].forEach(function (id) { var e = $(id); if (e) e.hidden = true; });
+    ["warTimeline", "warSpeed", "warRestart", "warLogWrap", "courtSpeakerWrap"].forEach(function (id) { var e = $(id); if (e) e.hidden = false; });
+    ui.setSceneVrAvailable(!!(ev && ev.image));
+    ui.setSceneKicker("朝堂议政 · 情景复原");
+    $("warLog").innerHTML = "";
+    var legend = $("sceneLegend");
+    legend.innerHTML = "";
+    (data.roles || []).forEach(function (r) {
+      var c = SIDE_COLOR[r.side] || "#7f8b9a";
+      legend.appendChild(U.el("span", "unit", "<i style='--c:" + U.esc(c) + "'></i>" + U.esc(r.name + (r.rank ? " · " + r.rank : ""))));
+    });
+    buildPhaseStrip(data);
+    ui.setWarSpeed(1);
+    ui.setScenePlaying(true);
+    ui.setWarPhase(null, 0, -1, ui.warPhases);
+    ui.setCourtSpeaker("朝堂", data.note || "");
+  };
+
+  ui.setCourtSpeaker = function (name, text) {
+    var box = $("courtSpeakerWrap"), p = $("courtSpeaker");
+    if (!box || !p) return;
+    box.hidden = false;
+    p.innerHTML = (name ? "<b>" + U.esc(name) + "</b>：" : "") + U.esc(text || "");
+  };
+
+  ui.openVRScene = function (data, ev) {
+    ui.openScene(data, ev);
+    ["warSides", "warTimeline", "warSpeed", "warRestart", "warLogWrap", "warLayersWrap", "courtSpeakerWrap"].forEach(function (id) {
+      var e = $(id); if (e) e.hidden = true;
+    });
+    ui.setSceneVrAvailable(false);
+    ui.setSceneKicker("360° 环视 · 图片扩展");
+    var legend = $("sceneLegend");
+    legend.innerHTML = "";
+    (data.hotspots || []).forEach(function (h) {
+      legend.appendChild(U.el("span", "unit", "<i style='--c:#d8b56a'></i>" + U.esc(h.label || "")));
+    });
+    $("scenePhase").textContent = "360° 环视";
+    $("sceneProgress").style.width = "0%";
+    ui.setScenePlaying(true);
   };
 
   ui.setWarStats = function (stats, sides) {
@@ -461,6 +564,17 @@
     return "<a class='mono' href='" + U.esc(url) + "' target='_blank' rel='noopener noreferrer'>" + U.esc(url) + "</a>";
   }
 
+  function demTable(d) {
+    return "<h4>地形数据（DEM）</h4><table>" +
+      "<tr><th>名称</th><td>" + U.esc(d.name) + "</td></tr>" +
+      "<tr><th>链接</th><td>" + link(d.url) + "</td></tr>" +
+      "<tr><th>许可</th><td>" + U.esc(d.license) + "</td></tr>" +
+      "<tr><th>署名</th><td>" + U.esc(d.attribution) + "</td></tr>" +
+      "<tr><th>修改</th><td>" + U.esc(d.modifications) + "</td></tr>" +
+      "<tr><th>访问日期</th><td>" + U.esc(d.accessed) + "</td></tr>" +
+      "</table>";
+  }
+
   function renderSrc(themes, id) {
     var body = $("srcBody"), h = [];
     var lic = window.HISTORY_LICENSE || {};
@@ -473,12 +587,14 @@
       h.push("</table><h4>程序生成的内容</h4><ul>");
       (lic.generated || []).forEach(function (g) { h.push("<li>" + U.esc(g) + "</li>"); });
       h.push("</ul><h4>项目</h4><p>" + U.esc((lic.project && lic.project.name) || "") + " · " + U.esc((lic.project && lic.project.usage) || "") + "</p>");
+      if (lic.dem) h.push(demTable(lic.dem));
       body.innerHTML = h.join("");
       return;
     }
     var t = themes[id];
     if (!t) { body.innerHTML = ""; return; }
     var cr = t.credits || {};
+    if (lic.dem) h.push(demTable(lic.dem));
     h.push("<h4>外部网站 / 历史地图参考</h4>");
     var recs = cr.sourceRecords || [];
     if (!recs.length) h.push("<p class='todo'>待补全</p>");

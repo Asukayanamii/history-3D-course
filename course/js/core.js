@@ -205,7 +205,7 @@
     var hw = P.W / 2 + 4, hh = P.H / 2 + 4;
     t.x = U.clamp(t.x, -hw, hw);
     t.z = U.clamp(t.z, -hh, hh);
-    t.y = 0;
+    t.y = HS.mapHeightAtXZ ? HS.mapHeightAtXZ(t.x, t.z) : 0;
   }
 
   S.resize = function () {
@@ -276,6 +276,10 @@
 
   C.resolve = function (v) {
     var target = v.lon != null && v.lat != null ? P.vec(v.lon, v.lat, 0) : new THREE.Vector3(0, 0, 0);
+    if (HS.mapHeightAt) {
+      if (v.lon != null && v.lat != null) target.y = HS.mapHeightAt(v.lon, v.lat) + 0.35;
+      else target.y = HS.mapHeightAt(P.lon(0), P.lat(0)) + 0.25;
+    }
     return {
       target: target,
       dist: U.clamp((v.dist || 40) * HS.DIST_UNIT, S.controls.minDistance, S.controls.maxDistance),
@@ -468,7 +472,7 @@
       if (!path) return false;
       if (HS.params && HS.params.probeAssets) return true;
       var it = HS.assets.byPath(path);
-      return !!it && it.status !== "missing";
+      return !!it && (it.status === "ready" || it.status === "needs-review" || it.status === "placeholder");
     },
     status: function (path) { var it = HS.assets.byPath(path); return it ? it.status : "missing"; },
     // 预加载；成功回调 url，失败静默（不显示破图）

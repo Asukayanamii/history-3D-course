@@ -8,11 +8,19 @@ window.HISTORY_LICENSE = {
     name: "史境 · 三维历史沙盘（占位名）",
     team: "history-3D-course 大创项目组",
     usage: "仅用于课堂教学演示与项目汇报，不商用",
-    version: "0.3.0-demo"
+    version: "0.4.0-demo"
   },
 
-  aiStatement: "插画与封面为 AI 生成的艺术复原示意，不是历史影像。",
-  mapStatement: "历史地图为示意性简化，不是精确疆域；势力色块未核订前由引擎按「中心点 + 半径」生成。",
+  aiStatement: "插画、封面与 2:1 全景为 AI 或程序化艺术复原示意，不是历史影像，也不是全景摄影。",
+  mapStatement: "地形为 SRTM/GMTED/ETOPO1 真实高程（垂直夸张，仅课堂可视化，非导航数据）；历史疆域仍为示意性简化，不是精确边界。",
+  dem: {
+    name: "Mapzen / Joerd Terrain Tiles（AWS Open Data）",
+    url: "https://registry.opendata.aws/terrain-tiles/",
+    license: "SRTM/GMTED2010/3DEP（USGS）与 ETOPO1（NOAA）为公有领域；瓦片打包 attribution 按 Joerd 要求保留。",
+    attribution: "Terrain Tiles by Mapzen / Linux Foundation, accessed 2026-10-23 from AWS Open Data. SRTM, GMTED2010 and 3DEP terrain data courtesy of the U.S. Geological Survey; ETOPO1 terrain data courtesy of NOAA/NCEI.",
+    modifications: "降采样/重采样为 Int16 网格，并在场景中做垂直夸张；不用于导航或测绘。",
+    accessed: "2026-10-23"
+  },
 
   code: [
     { name: "Three.js", version: "r147", license: "MIT License", copyright: "Copyright 2010-2022 Three.js Authors",
@@ -32,7 +40,10 @@ window.HISTORY_LICENSE = {
   ],
 
   generated: [
-    "沙盘底座纹理、沙粒、等高线、海岸示意：Canvas 程序化生成（无外部底图、无 DEM）",
+    "沙盘纹理、沙粒、等高线、海陆掩膜：Canvas 基于 DEM 现场绘制",
+    "地形：Mapzen/Joerd Terrain Tiles 派生 Int16 高程网格（见 dem 段）",
+    "小人、朝堂、军阵、微缩情景：Three.js 基础几何程序化生成",
+    "2:1 全景：由现有 16:9 插画扩展生成的教学示意，不是全景摄影；真全景槽位见 assets/vr/",
     "音效：Web Audio API 实时合成，无音频文件、无背景音乐",
     "字体：仅使用操作系统自带字体，无 Web Font"
   ]

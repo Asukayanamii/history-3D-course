@@ -592,3 +592,83 @@ code, .mono { font-family: Consolas, "SFMono-Regular", Menlo, monospace; font-si
   .war-phase b { font-size: 11px; }
   #warUnitTip { max-width: 220px; }
 }
+
+/* ---------------- v0.4：事件类型 / 卡片 VR 按钮 ---------------- */
+.chip-kind { color: #efdfb9; border-color: rgba(220, 195, 145, 0.35); background: rgba(220, 195, 145, 0.08); }
+.chip-kind.kind-war { color: #f0b49c; border-color: rgba(212, 85, 59, 0.5); background: rgba(212, 85, 59, 0.1); }
+.chip-kind.kind-reform { color: #e8cf8c; border-color: rgba(201, 168, 101, 0.55); background: rgba(201, 168, 101, 0.1); }
+.chip-kind.kind-diplomacy { color: #b9d4c8; border-color: rgba(108, 160, 143, 0.5); background: rgba(108, 160, 143, 0.1); }
+
+.pic-vr {
+  position: absolute; z-index: 3; right: 12px; top: 12px;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 10px; border-radius: 999px;
+  font: 600 12px var(--f-ui); letter-spacing: 0.08em; color: #fff5dc;
+  background: rgba(5, 13, 11, 0.68); border: 1px solid rgba(220, 195, 145, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); backdrop-filter: blur(7px);
+  transition: 0.2s;
+}
+.pic-vr:hover { background: rgba(18, 34, 28, 0.92); border-color: var(--sand); transform: translateY(-1px); }
+.pic-vr svg { width: 17px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+
+/* ---------------- v0.4：360° 环视层 ---------------- */
+#vrStage { position: absolute; inset: 0; z-index: 2; overflow: hidden; background: #070d0c; }
+#vrStage[hidden] { display: none; }
+#vrSky {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 48%, rgba(190, 170, 128, 0.18), rgba(7, 13, 12, 0) 70%),
+    linear-gradient(#0a1412, #16211b 48%, #0a100e);
+}
+#vrPan {
+  position: absolute; inset: 0;
+  background-position: 50% 50%;
+  background-repeat: repeat-x;
+  background-size: auto 128%;
+  will-change: background-position, background-size;
+  filter: saturate(0.92) contrast(1.03) brightness(0.92);
+  transform: scale(1.002);
+}
+#vrDustCanvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.75; }
+#vrVignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 58% 58% at 50% 48%, rgba(3, 8, 7, 0) 0%, rgba(3, 8, 7, 0.12) 62%, rgba(2, 6, 5, 0.78) 100%),
+    linear-gradient(rgba(2, 7, 6, 0.6), transparent 16%, transparent 70%, rgba(2, 7, 6, 0.78));
+}
+#vrSpots { position: absolute; inset: 0; pointer-events: none; }
+.vr-spot {
+  position: absolute; transform: translate(-50%, -50%);
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 10px 6px 7px; border-radius: 999px;
+  font: 600 12px var(--f-ui); color: #fff3d5; letter-spacing: 0.06em;
+  background: rgba(5, 13, 11, 0.72); border: 1px solid rgba(220, 195, 145, 0.55);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); backdrop-filter: blur(6px);
+  pointer-events: auto; cursor: pointer; white-space: nowrap;
+}
+.vr-spot:hover { background: rgba(24, 42, 35, 0.94); border-color: var(--sand); }
+.vr-spot i {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--sand); box-shadow: 0 0 10px var(--sand);
+  animation: vrPulse 2.2s ease-in-out infinite;
+}
+@keyframes vrPulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.55); opacity: 0.4; } }
+#vrSpotTip {
+  position: fixed; z-index: 72; max-width: 300px; padding: 10px 13px; border-radius: 9px;
+  font: 13px/1.7 var(--f-ui); color: var(--paper);
+  background: rgba(4, 11, 9, 0.96); border: 1px solid rgba(220, 195, 145, 0.4);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.6); pointer-events: none;
+}
+#vrSpotTip b { display: block; color: var(--sand); font-weight: 600; margin-bottom: 3px; }
+#vrSpotTip p { color: var(--paper-dim); font-size: 12.5px; }
+
+#sceneView.is-vr #sceneCanvas, #sceneView.is-vr #sceneVignette { display: none; }
+#sceneView.is-vr #sceneTop { background: linear-gradient(rgba(3, 9, 8, 0.86), rgba(3, 9, 8, 0)); }
+#sceneView.is-vr #scenePanel { background: rgba(5, 12, 10, 0.72); }
+#sceneView.is-vr .scene-hint { color: #d8c9a8; }
+
+@media (max-width: 900px) {
+  .pic-vr { right: 8px; top: 8px; padding: 6px 8px; font-size: 11px; }
+  .pic-vr svg { width: 15px; }
+  #vrSpotTip { max-width: 220px; }
+}

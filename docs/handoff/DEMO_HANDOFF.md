@@ -1,5 +1,22 @@
 # DEMO 交接 · 史境三维历史沙盘 v0.3
 
+> **v0.4 增量（2026-10-23）**：真实 DEM 地形、所有战争事件 `battle`、e11 `court`、360° `vr`、地图微缩情景已落地。最新状态以 `docs/需求修订_v0.4.md`、`docs/handoff/SCENE_SPEC_v0.4.md`、`docs/handoff/DEM_SOURCES.md` 和 `course/README.md` 为准；本文件 v0.3 段落保留作历史记录。
+
+## v0.4 状态速览
+
+| 能力 | 状态 |
+|---|---|
+| 主沙盘真实 DEM（SRTM/GMTED/ETOPO1） | 完成；22× 垂直夸张 |
+| DEM 海陆/海岸/等高线 | 完成 |
+| 所有战争事件场景 | 完成；e06 `war`，其余 `battle` |
+| 世宗改革朝堂 | 完成；`court` |
+| 小人/骑兵/文官/皇帝/侍卫 | 完成；程序化几何 |
+| 地图微缩情景 | 完成；战争/改革 |
+| 360° 全景 | 完成；2:1 扩展示意 + 热点 |
+| 真 360° 摄影全景 | 待 GPT-Image2 替换 |
+| e11 真插画 | 待 GPT-Image2 替换 |
+| 历史疆域精确化 | 未做；仍为示意 |
+
 > 日期：2026-10-23
 > 代码位置：`course/`
 > 需求依据：`docs/需求修订_v0.2.md`（以 `docs/聊天记录整理.md` 为准）、`docs/handoff/WAR_SCENE_SPEC.md`

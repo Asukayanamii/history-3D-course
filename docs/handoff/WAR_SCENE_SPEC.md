@@ -1,5 +1,7 @@
 # WAR 场景规范（v0.3）
 
+> **v0.4 增量**：新增 `battle` / `court` / `vr` 场景与真实 DEM `terrain` 字段；完整契约见 `docs/handoff/SCENE_SPEC_v0.4.md`。本文件保留 v0.3 war 推演规则与验收记录。
+
 > 用途：把战争事件做成「省份节点 + 自动推演」的兵棋场景。当前试点 `wudai/e06 高平之战`。
 > 引擎：`course/js/scene.js`；数据：`course/data/theme.wudai.js#e06.scene`。
 > 原则：自动推演，不做玩家下令；战线由省份控制派生，不写手工关键帧；兵力/战线为战术示意。

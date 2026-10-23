@@ -35,6 +35,7 @@ window.HISTORY_THEMES.wudai = {
     projection: "equirect",
     bounds: { west: 100, east: 123, south: 21, north: 43 },
     relief: { mode: "stylized", amplitude: 1.0, texture: "" },
+    terrain: { mode: "dem", dem: "east-asia", exaggeration: 22, meshStep: 0.10, maxHeight: 5.2, edgeFalloff: 1.8 },
     mapSnapshot: "约 955 年（后周显德二年）",
     omitted: [
       { name: "大理", note: "约 955 年据云南；不在本课重点，未单列色块。" },
@@ -181,6 +182,7 @@ window.HISTORY_THEMES.wudai = {
   events: [
     {
       id: "e01", order: 1, date: "907年", shortDate: "907", title: "后梁代唐",
+      kind: "politics",
       place: "汴州（今河南开封）", regionId: "", routeId: "r-capitals", nodeId: "bianzhou-907",
       lon: 114.31, lat: 34.80,
       summary: "907年，朱温废唐哀帝，建立后梁，定都汴州，唐朝灭亡。此后中原相继出现后梁、后唐、后晋、后汉、后周五个短命王朝，史称五代；南方与河东则分裂为多个割据政权。",
@@ -209,6 +211,8 @@ window.HISTORY_THEMES.wudai = {
     },
     {
       id: "e02", order: 2, date: "923年", shortDate: "923", title: "后唐灭梁",
+      kind: "war",
+      battle: { preset: "field", terrain: "guanzhong", sides: [{ id: "tang", name: "后唐", color: "#b0563c", short: "唐" }, { id: "liang", name: "后梁", color: "#6f8399", short: "梁" }] },
       place: "洛阳", regionId: "", routeId: "r-capitals", nodeId: "luoyang-923",
       lon: 112.45, lat: 34.62,
       summary: "923年，李存勖在魏州称帝，国号唐，随后攻破汴州，后梁末帝自杀，后梁灭亡。后唐定都洛阳，控制中原、关中与河北大部，是五代中疆域最广的王朝之一。",
@@ -236,6 +240,7 @@ window.HISTORY_THEMES.wudai = {
     },
     {
       id: "e03", order: 3, date: "936年", shortDate: "936", title: "割让燕云",
+      kind: "diplomacy",
       place: "幽州（今北京）", regionId: "qidan", routeId: "r-capitals", nodeId: "youzhou-936",
       lon: 116.35, lat: 39.90,
       summary: "936年，后唐河东节度使石敬瑭向契丹求援，许割燕云十六州、称臣称儿；契丹出兵助他灭后唐、建立后晋。938年燕云十六州正式交割，中原失去北方屏障。",
@@ -265,6 +270,8 @@ window.HISTORY_THEMES.wudai = {
     },
     {
       id: "e04", order: 4, date: "947年", shortDate: "947", title: "契丹灭晋",
+      kind: "war",
+      battle: { preset: "siege", terrain: "huainan", sides: [{ id: "liao", name: "契丹（辽）", color: "#8a7a5a", short: "辽" }, { id: "jin", name: "后晋", color: "#6f8399", short: "晋" }] },
       place: "汴州", regionId: "", routeId: "r-capitals", nodeId: "bianzhou-947",
       lon: 114.36, lat: 34.85,
       summary: "947年，契丹军攻入汴州，后晋出帝被俘，后晋灭亡。辽太宗耶律德光一度在中原称帝，因军民反抗被迫北撤；刘知远在太原称帝，建立后汉。",
@@ -292,6 +299,7 @@ window.HISTORY_THEMES.wudai = {
     },
     {
       id: "e05", order: 5, date: "951年", shortDate: "951", title: "后周建立",
+      kind: "politics",
       place: "汴州", regionId: "houzhou", routeId: "r-capitals", nodeId: "bianzhou-947",
       lon: 114.36, lat: 34.85,
       summary: "951年，后汉枢密使郭威起兵攻入汴州，称帝建立后周。后周整顿吏治、减轻赋税、废除苛法，为柴荣改革和北宋统一奠定了基础；后周是五代最后一个中原王朝。",
@@ -319,6 +327,7 @@ window.HISTORY_THEMES.wudai = {
     },
     {
       id: "e06", order: 6, date: "954年", shortDate: "954", title: "高平之战",
+      kind: "war",
       place: "高平（今山西高平）", regionId: "houzhou", routeId: "r-north", nodeId: "gaoping",
       lon: 112.92, lat: 35.80,
       summary: "954年，北汉联合辽军南下，后周世宗柴荣亲征，在高平大败联军。此战巩固了柴荣的统治，也成为他整顿禁军、推进改革的起点，后周由此转危为安。",
@@ -335,10 +344,11 @@ window.HISTORY_THEMES.wudai = {
         type: "war",
         title: "高平之战 · 兵棋推演",
         subtitle: "954 年 · 后周 vs 北汉 / 辽",
-        note: "省份、兵力、战线为战术示意，不是精确历史阵图。",
+        note: "地形为 SRTM 真实高程（垂直夸张），省份、兵力、战线为战术示意，不是精确历史阵图。",
         duration: 30,
         tick: 0.1,
         seed: 954,
+        terrain: { dem: "gaoping", bounds: { west: 111.4, east: 114.6, south: 34.8, north: 38.2 }, size: [96, 108], exaggeration: 9, meshStep: 0.01 },
         camera: { dist: 90, az: 0, polar: 50, target: [0, 0] },
         sides: [
           { id: "zhou", name: "后周", color: "#d4553b", short: "周" },
@@ -473,6 +483,14 @@ window.HISTORY_THEMES.wudai = {
       },
       ask: { q: "高平之战对柴荣意味着什么？", a: "它既是生死考验，也是改革契机；柴荣借此树立权威，开始整顿军队、削弱藩镇，为后续南征北伐打基础。" },
       image: { file: "assets/events/wudai/e06.jpg", alt: "高平山地战场上后周军反击北汉与辽军的艺术复原示意。", promptId: "wudai-e06", credit: "AI 艺术复原示意" },
+      vr: {
+        pano: "assets/vr/wudai/e06.jpg",
+        hotspots: [
+          { x: 0.40, y: 0.50, label: "柴荣督战", text: "后周世宗柴荣亲临阵前，督军反击。" },
+          { x: 0.35, y: 0.62, label: "后周盾阵", text: "后周步兵结阵，承受北汉与辽军冲击。" },
+          { x: 0.62, y: 0.52, label: "北汉 / 辽骑兵", text: "北汉与辽军骑兵从侧翼压来，队形为情景示意。" }
+        ]
+      },
       focus: { dist: 20, az: -14, polar: 52 },
       historiography: { level: "consensus", note: "赵匡胤在高平之战中的作用见于宋人史籍，细节或有夸大；后周获胜为共识。" },
       sources: [
@@ -485,7 +503,78 @@ window.HISTORY_THEMES.wudai = {
       reviewNote: "待耿雨审核：赵匡胤作用的表述、樊爱能/何徽临阵脱逃的细节。"
     },
     {
-      id: "e07", order: 7, date: "955—958年", shortDate: "955", title: "三征南唐",
+      id: "e11", order: 7, date: "955年起（显德年间）", shortDate: "955", title: "世宗改革",
+      kind: "reform",
+      place: "汴州（今河南开封）", regionId: "houzhou", routeId: "r-capitals", nodeId: "bianzhou-947",
+      lon: 114.36, lat: 34.85,
+      summary: "高平之战后，后周世宗柴荣着手整顿军政与财政：裁汰冗兵、选练禁军，均定田赋、惩办贪吏，限制佛教、毁佛铸钱，编定《大周刑统》，疏浚汴河。改革增强了后周国力，为北宋统一奠定了基础。",
+      detail: [
+        "954 年高平之战后，柴荣整顿禁军，裁汰老弱，选练精锐，加强中央对军队的控制。",
+        "955 年，均定田赋，减轻部分农民负担，增加财政收入；同时整顿吏治、惩办贪吏。",
+        "955—956 年，限制佛教，废寺、勒僧尼还俗、毁佛铸钱，缓解铜荒；评价需并陈财政收益与社会代价。",
+        "命臣僚编定《大周刑统》，统一法律；疏浚汴河等漕运，恢复开封的交通与经济。",
+        "改革增强了后周国力，为北宋统一南方与结束分裂局面准备了条件。"
+      ],
+      figures: ["柴荣（后周世宗）", "王溥", "范质", "赵匡胤（禁军将领）"],
+      result: "后周军政、财政、法律与漕运得到整顿，国力增强。",
+      impact: "为北宋统一奠定制度与军事基础；限制佛教等措施也有社会代价，需并陈。",
+      ask: { q: "世宗改革包括哪些方面？为什么说它为北宋统一奠定了基础？", a: "包括整顿禁军、均定田赋、整顿吏治、限制佛教与铸钱、编定刑统、疏浚漕运等；这些措施增强了后周的财政与军力，也为北宋承接制度与统一条件打下基础。" },
+      image: { file: "assets/events/wudai/e11.jpg", alt: "后周世宗柴荣与大臣在汴州朝堂议政的艺术复原占位图。", promptId: "wudai-e11", credit: "占位 · 待 GPT-Image2 替换" },
+      focus: { dist: 28, az: 0, polar: 46 },
+      historiography: { level: "debate", note: "改革措施与为统一奠定基础是教材共识；限佛/废寺的规模、社会代价与评价存在不同侧重，课堂应并陈。" },
+      sources: [
+        { title: "中外历史纲要（上）", author: "教育部组织编写", publisher: "人民教育出版社", year: "2019", locator: "第6课 从隋唐盛世到五代十国", url: "", accessed: "2026-10-23", confidence: "high", note: "教学口径：后周世宗改革为北宋统一奠定基础。" },
+        { title: "旧五代史", author: "薛居正等", publisher: "中华书局", year: "1976", locator: "周书·世宗本纪、食货志", url: "", accessed: "2026-10-23", confidence: "medium", note: "中华书局点校本；未逐页核对。" },
+        { title: "新五代史", author: "欧阳修", publisher: "中华书局", year: "1974", locator: "周本纪", url: "", accessed: "2026-10-23", confidence: "medium", note: "中华书局点校本；未逐页核对。" },
+        { title: "资治通鉴", author: "司马光", publisher: "中华书局", year: "1956", locator: "显德二年至六年条", url: "", accessed: "2026-10-23", confidence: "high", note: "编年叙事；只标年份条目。" }
+      ],
+      status: "sourced",
+      reviewNote: "待耿雨审核：均定田赋、限佛/废寺、刑统、整顿禁军的表述与评价；朝堂人物称谓与台词为情景复原。",
+      vr: {
+        pano: "assets/vr/wudai/e11.jpg",
+        hotspots: [
+          { x: 0.50, y: 0.47, label: "柴荣", text: "后周世宗，主持军政、赋税、法制与漕运整顿。" },
+          { x: 0.40, y: 0.60, label: "宰相", text: "朝堂议政的角色化呈现，不是史料原文。" },
+          { x: 0.62, y: 0.61, label: "大臣", text: "户部、御史、禁军将领围绕改革措施发言。" }
+        ]
+      },
+      scene: {
+        type: "court",
+        variant: "court",
+        title: "世宗改革 · 朝堂议政",
+        subtitle: "955 年起 · 后周 · 汴州",
+        note: "人物称谓、台词与场景为教学情景复原，不是史料原文；改革措施以教材与正史概括为准。",
+        duration: 26,
+        camera: { dist: 34, az: 0, polar: 70 },
+        roles: [
+          { id: "emperor", name: "柴荣", rank: "后周世宗", side: "reform", pose: "seat" },
+          { id: "chancellor", name: "宰相", rank: "中书", side: "reform", pose: "listen" },
+          { id: "finance", name: "户部官员", rank: "三司", side: "cautious", pose: "listen" },
+          { id: "censor", name: "御史", rank: "御史台", side: "reform", pose: "listen" },
+          { id: "general", name: "禁军将领", rank: "殿前", side: "reform", pose: "listen" },
+          { id: "guard", name: "侍卫", rank: "宿卫", side: "neutral", pose: "guard" }
+        ],
+        phases: [
+          { at: 0.00, speaker: "emperor", label: "高平之后", log: "柴荣：高平一战，禁军老弱与临阵脱逃之弊，必须整顿。", gesture: "raise" },
+          { at: 0.18, speaker: "general", label: "整顿禁军", log: "禁军将领：请裁汰老弱，选练精锐，统一号令。", gesture: "point" },
+          { at: 0.40, speaker: "finance", label: "均定田赋", log: "户部官员：均田赋可纾民困，但州县隐户未清，须先核田。", gesture: "spread" },
+          { at: 0.60, speaker: "censor", label: "惩贪与法制", log: "御史：贪吏不惩，诏令难行；请颁统一刑统。", gesture: "raise" },
+          { at: 0.78, speaker: "emperor", label: "限佛铸钱", log: "柴荣：限佛、毁佛铸钱以济国用；此事有社会代价，须慎行。", gesture: "raise" },
+          { at: 0.92, speaker: "emperor", label: "改革收束", log: "改革增强后周国力，为统一准备条件；评价应并陈收益与代价。", gesture: "seat" }
+        ],
+        text: {
+          time: "955 年起（显德年间）",
+          place: "汴州（今河南开封）",
+          figures: ["柴荣（后周世宗）", "宰相", "户部官员", "御史", "禁军将领"],
+          result: "后周军政、财政、法律与漕运得到整顿，国力增强。",
+          impact: "为北宋统一奠定制度与军事基础；限制佛教等措施也有社会代价，需并陈。"
+        }
+      }
+    },
+    {
+      id: "e07", order: 8, date: "955—958年", shortDate: "955", title: "三征南唐",
+      kind: "war",
+      battle: { preset: "siege", terrain: "huainan", sides: [{ id: "zhou", name: "后周", color: "#b0563c", short: "周" }, { id: "tang", name: "南唐", color: "#4f8a78", short: "唐" }] },
       place: "寿州（今安徽寿县）", regionId: "houzhou", routeId: "r-south", nodeId: "shouzhou",
       lon: 116.78, lat: 32.60,
       summary: "955年至958年，后周世宗柴荣三次亲征南唐，攻下寿州等地，夺取江北十四州。南唐去帝号称臣，后周国力大增，为北宋统一南方铺路；此战是五代末年规模最大的战争之一。",
@@ -501,6 +590,14 @@ window.HISTORY_THEMES.wudai = {
       impact: "后周获得淮南财赋，为北宋统一南方铺路。",
       ask: { q: "后周为什么要先打南唐？", a: "南唐占据江淮富庶之地，又相对虚弱；夺取淮南既能削弱南方最大割据政权，又能增强后周财力，为统一战争提供基地。" },
       image: { file: "assets/events/wudai/e07.jpg", alt: "后周军队在淮河与寿州城下作战的艺术复原示意。", promptId: "wudai-e07", credit: "AI 艺术复原示意" },
+      vr: {
+        pano: "assets/vr/wudai/e07.jpg",
+        hotspots: [
+          { x: 0.58, y: 0.48, label: "寿州城楼", text: "南唐守军据城坚守，后周军多次强攻。" },
+          { x: 0.42, y: 0.59, label: "淮河浮桥", text: "后周军队渡河、攻城，画面为艺术复原示意。" },
+          { x: 0.34, y: 0.64, label: "后周军", text: "后周军以步兵、水军与民夫协同攻城。" }
+        ]
+      },
       focus: { dist: 24, az: 12, polar: 48 },
       historiography: { level: "consensus", note: "“三征”一般指 955—958 年间三次亲征；江北十四州的州名单与交割细节各书略有出入。" },
       sources: [
@@ -513,7 +610,9 @@ window.HISTORY_THEMES.wudai = {
       reviewNote: "待耿雨审核：江北十四州州名、“江南国主”称谓、寿州陷落时间。"
     },
     {
-      id: "e08", order: 8, date: "959年", shortDate: "959", title: "北伐契丹",
+      id: "e08", order: 9, date: "959年", shortDate: "959", title: "北伐契丹",
+      kind: "war",
+      battle: { preset: "cavalry", terrain: "hebei", sides: [{ id: "zhou", name: "后周", color: "#b0563c", short: "周" }, { id: "liao", name: "辽", color: "#8a7a5a", short: "辽" }] },
       place: "瓦桥关（今河北雄县一带）", regionId: "houzhou", routeId: "r-north", nodeId: "waqiaoguan",
       lon: 116.00, lat: 39.00,
       summary: "959年，柴荣北伐辽，收复瀛、莫等州及瓦桥关、益津关、淤口关，兵锋逼近幽州。正当准备进攻幽州时，柴荣病重，北伐中止；这是五代末年中原政权对辽最有力的一次反击。",
@@ -528,6 +627,14 @@ window.HISTORY_THEMES.wudai = {
       impact: "这是五代末年中原对辽最有力的一次反击，关南之地得以保留。",
       ask: { q: "如果柴荣没有病倒，后周能收复幽州吗？", a: "不能简单假设。后周军进展顺利，但辽军主力未受重创，幽州城防坚固；历史没有如果，课堂应关注北伐反映的统一趋势与后周军力。" },
       image: { file: "assets/events/wudai/e08.jpg", alt: "后周骑兵北出瓦桥关、辽军远退的艺术复原示意。", promptId: "wudai-e08", credit: "AI 艺术复原示意" },
+      vr: {
+        pano: "assets/vr/wudai/e08.jpg",
+        hotspots: [
+          { x: 0.58, y: 0.49, label: "瓦桥关", text: "后周收复瓦桥、益津、淤口三关，逼近幽州。" },
+          { x: 0.38, y: 0.61, label: "后周骑兵", text: "后周骑兵北出关城，辽军远退。" },
+          { x: 0.66, y: 0.39, label: "燕山", text: "燕山—长城一线是中原与辽对峙的地理屏障。" }
+        ]
+      },
       focus: { dist: 18, az: 14, polar: 50 },
       historiography: { level: "consensus", note: "收复州数与三关名称各书记载略有差异；有作瀛、莫、易三州者，本数据采用较保守的“瀛、莫等州”。“关南”指瓦桥、益津、淤口三关以南地区。" },
       sources: [
@@ -540,7 +647,8 @@ window.HISTORY_THEMES.wudai = {
       reviewNote: "待耿雨审核：瀛、莫等州（有作瀛、莫、易三州）与三关的具体表述，北伐起止时间。"
     },
     {
-      id: "e09", order: 9, date: "959年6月", shortDate: "959", title: "柴荣病逝",
+      id: "e09", order: 10, date: "959年6月", shortDate: "959", title: "柴荣病逝",
+      kind: "politics",
       place: "汴州", regionId: "houzhou", routeId: "r-capitals", nodeId: "bianzhou-947",
       lon: 114.36, lat: 34.85,
       summary: "959年六月，柴荣病逝，年仅三十九岁。年幼的柴宗训即位，符太后临朝听政，后周政局出现权力真空，为次年的陈桥兵变埋下伏笔；北伐随即中止。",
@@ -567,7 +675,8 @@ window.HISTORY_THEMES.wudai = {
       reviewNote: "待耿雨审核：柴荣卒月（农历六月/公历 7 月）、幼主年岁与辅政安排。"
     },
     {
-      id: "e10", order: 10, date: "960年", shortDate: "960", title: "陈桥兵变",
+      id: "e10", order: 11, date: "960年", shortDate: "960", title: "陈桥兵变",
+      kind: "politics",
       place: "陈桥（今河南封丘一带）", regionId: "houzhou", routeId: "r-capitals", nodeId: "chenqiao-960",
       lon: 114.50, lat: 34.95,
       summary: "960年，赵匡胤率禁军北上御敌，在陈桥驿被部下黄袍加身，回师汴州，迫使后周恭帝禅位，建立宋朝。五代结束，北宋统一进程开始；兵变几乎兵不血刃。",
@@ -606,6 +715,7 @@ window.HISTORY_THEMES.wudai = {
       { at: "947", label: "契丹灭晋", eventId: "e04" },
       { at: "951", label: "后周建立", eventId: "e05" },
       { at: "954", label: "高平之战", eventId: "e06" },
+      { at: "955", label: "世宗改革", eventId: "e11" },
       { at: "955", label: "三征南唐", eventId: "e07" },
       { at: "959", label: "北伐契丹", eventId: "e08" },
       { at: "959", label: "柴荣病逝", eventId: "e09" },

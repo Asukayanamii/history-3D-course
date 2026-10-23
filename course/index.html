@@ -57,7 +57,8 @@
   <label><span>河流</span><input type="checkbox" data-layer="rivers" checked></label>
   <label><span>地名</span><input type="checkbox" data-layer="places" checked></label>
   <label><span>事件标签</span><input type="checkbox" data-layer="events" checked></label>
-  <label><span>山体起伏</span><input type="checkbox" data-layer="relief" checked></label>
+  <label><span>地形等高线</span><input type="checkbox" data-layer="relief" checked></label>
+  <label><span>情景小人</span><input type="checkbox" data-layer="vignette" checked></label>
   <label class="sep"><span>自动旋转</span><input type="checkbox" data-layer="spin"></label>
 </div>
 
@@ -71,6 +72,10 @@
     </div>
     <div class="pic-img" id="picImg"></div>
     <span class="pic-badge" id="picBadge" hidden></span>
+    <button class="pic-vr" id="vrBtn" data-act="vr" title="360° 环视（V）" hidden>
+      <svg viewBox="0 0 24 24"><path d="M4 9.5c2.4-1.6 4.8-2.4 8-2.4s5.6.8 8 2.4c-.2 3.4-1.1 5.4-3 6.2-1.6.7-3.2-.6-5-3.1-1.8 2.5-3.4 3.8-5 3.1-1.9-.8-2.8-2.8-3-6.2Z"/></svg>
+      <span>360° 环视</span>
+    </button>
   </div>
   <div class="card-body">
     <div class="card-meta"><span id="cardNo"></span><span id="cardDate"></span><span id="cardPlace"></span></div>
@@ -153,6 +158,7 @@
           <dt><kbd>Home</kbd></dt><dd>回到全景</dd>
           <dt><kbd>Q</kbd></dt><dd>课堂提问 / 揭晓答案</dd>
           <dt><kbd>E</kbd></dt><dd>进入 / 退出 3D 场景</dd>
+          <dt><kbd>V</kbd></dt><dd>进入 / 退出 360° 全景</dd>
           <dt><kbd>空格</kbd>（场景内）</dt><dd>暂停 / 继续战况</dd>
           <dt><kbd>P</kbd></dt><dd>自动演示 开 / 关</dd>
           <dt><kbd>L</kbd></dt><dd>图层面板</dd>
@@ -196,6 +202,14 @@
 
 <!-- 3D 场景（全知视角） -->
 <div id="sceneView" hidden>
+  <div id="vrStage" hidden>
+    <div id="vrSky"></div>
+    <div id="vrPan"></div>
+    <canvas id="vrDustCanvas"></canvas>
+    <div id="vrVignette"></div>
+    <div id="vrSpots"></div>
+    <div id="vrSpotTip" hidden></div>
+  </div>
   <canvas id="sceneCanvas"></canvas>
   <div id="sceneVignette"></div>
   <header id="sceneTop">
@@ -203,7 +217,7 @@
       <svg viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></svg>返回地图<kbd>Esc</kbd>
     </button>
     <div class="scene-heading">
-      <span class="scene-kicker">兵棋推演 · 战术示意</span>
+      <span class="scene-kicker" id="sceneKicker">兵棋推演 · 战术示意</span>
       <h2 id="sceneTitle"></h2>
       <p id="sceneSub"></p>
     </div>
@@ -214,6 +228,7 @@
         <button data-act="war-speed" data-speed="4">4x</button>
       </div>
       <button class="btn" data-act="war-restart" id="warRestart" hidden>重播<kbd>R</kbd></button>
+      <button class="btn" data-act="scene-vr" id="sceneVrBtn" title="360° 全景（V）" hidden>VR 全景</button>
       <button class="btn scene-play" data-act="scene-play" id="scenePlayBtn"><span id="scenePlayLabel">暂停</span><kbd>Space</kbd></button>
     </div>
   </header>
@@ -221,6 +236,7 @@
   <aside id="scenePanel">
     <div class="scene-meta"><span id="sceneTime"></span><span id="scenePlace"></span></div>
     <section class="scene-section"><h4>主要人物</h4><p id="sceneFigures"></p></section>
+    <section class="scene-section court-only" id="courtSpeakerWrap" hidden><h4>发言</h4><p id="courtSpeaker"></p></section>
     <section class="scene-section"><h4>结果</h4><p id="sceneResult"></p></section>
     <section class="scene-section"><h4>影响</h4><p id="sceneImpact"></p></section>
     <section class="scene-section"><h4>战场</h4><div id="sceneLegend"></div></section>
@@ -244,6 +260,7 @@
 <script src="data/theme.wudai.js"></script>
 <script src="data/theme.suitang.js"></script>
 <script src="data/theme.song.js"></script>
+<script src="data/dem/regions.js"></script>
 <script src="data/assets.js"></script>
 <script src="data/license.js"></script>
 <!-- 第三方库（MIT） -->
@@ -251,6 +268,9 @@
 <script src="js/lib/OrbitControls.js"></script>
 <!-- 引擎 -->
 <script src="js/core.js"></script>
+<script src="js/dem.js"></script>
+<script src="js/figures.js"></script>
+<script src="js/vr360.js"></script>
 <script src="js/map.js"></script>
 <script src="js/route.js"></script>
 <script src="js/ui.js"></script>

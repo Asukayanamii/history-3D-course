@@ -1,6 +1,8 @@
-# 史境 · 三维历史沙盘（Demo v0.2）
+# 史境 · 三维历史沙盘（Demo v0.4）
 
 面向中学历史课堂的三维时空交互课件 Demo。双击 `index.html` 即可在 Chrome / Edge 打开，不需要联网、不需要安装依赖。
+
+v0.4 的重点：**真实 DEM 地形**、**所有战争事件的小人战场**、**世宗改革朝堂辩论**、**360° 全景环视**。
 
 ## 打开方式
 
@@ -8,7 +10,7 @@
 2. 首次进入是首屏；点「开始探索」进入五代十国。
 3. 如果浏览器拦截本地文件，请确认使用的是 Chrome/Edge，而不是 IE。
 
-> 整个 `course/` 文件夹可以拷到 U 盘；不要只拷 `index.html`，`js/`、`data/`、`css/` 要一起拷。
+> 整个 `course/` 文件夹可以拷到 U 盘；不要只拷 `index.html`，`js/`、`data/`、`css/`、`assets/` 要一起拷。
 
 ## 课堂操作
 
@@ -18,77 +20,113 @@
 | 旋转 / 缩放 / 平移 | 左键拖动 / 滚轮 / 右键拖动 |
 | 回到全景 | `Home` 或顶栏「全景」 |
 | 课堂提问 | `Q` 出题，再按 `Q` 揭晓；`Esc` 关闭 |
-| 进入 / 退出战争场景 | `E`，或卡片上的「进入场景」；场景内 `Esc` 返回 |
+| 进入 / 退出 3D 场景 | `E`，或卡片上的「进入场景」；场景内 `Esc` 返回 |
+| 进入 / 退出 360° 全景 | `V`，或卡片图片右上角「360° 环视」 |
 | 场景暂停 / 继续 | 场景内 `Space` |
 | 场景速度 | 场景内 `1` 1x / `2` 2x / `3` 4x；也可点顶栏速度按钮 |
 | 场景重播 | 场景内 `R`，或顶栏「重播」 |
-| 场景图层 | 场景内 `L`，或右侧「图层」 |
+| 场景图层 | 战争场景内 `L`，或右侧「图层」 |
+| VR 复位视角 | `Home` |
 | 自动演示 | `P` 开/关；`?demo=1` 自动播放 |
 | 图层 | `L`（地图模式） |
 | 静音 / 恢复 | `M` |
 | 全屏 | `F` |
 | 切换时期 | `1` 隋唐 / `2` 五代十国 / `3` 宋朝 |
 
-## 三个时期
+## 三个时期与场景
 
-| 时期 | 事件数 | 说明 |
+| 时期 | 事件数 | 场景 |
 |---|---|---|
-| 五代十国 | 10 | 默认、重点；3 条路线；高平之战有兵棋推演场景 |
-| 隋唐（安史之乱） | 6 | 薄主题，证明同一引擎可切换 |
-| 宋朝（澶渊之盟） | 4 | 薄主题，证明同一引擎可切换 |
+| 五代十国 | 11 | 高平之战（`war` 省域兵棋）；世宗改革（`court` 朝堂）；其余 4 个战争事件自动 `battle` |
+| 隋唐（安史之乱） | 6 | 5 个战争事件自动 `battle`（范阳、洛阳、潼关、长安、两京） |
+| 宋朝（澶渊之盟） | 4 | 3 个战争事件自动 `battle`（南下、瀛州、澶州） |
 
-## 高平之战 · 兵棋推演
+> 政治/外交事件（如后周建立、陈桥兵变、澶渊之盟）本轮没有强制场景；卡片会显示「进入场景」禁用，不伪造。
 
-`e06` 的「进入场景」打开一个自动推演的省域战场：
+## 真实地形
+
+- 主沙盘使用 **Mapzen / Joerd Terrain Tiles**（AWS Open Data）派生的真实 DEM：
+  - SRTM / GMTED2010 / 3DEP（USGS）与 ETOPO1（NOAA）；
+  - 0.06° 网格，主沙盘 22× 垂直夸张；
+  - 海陆掩膜、海岸线、等高线由高程生成。
+- 战场使用局部高精度网格：
+  - `gaoping` 高平、`hebei` 河北、`guanzhong` 关中、`huainan` 中原淮南；
+  - 0.008° 网格，9× 垂直夸张。
+- 垂直夸张只用于课堂可视化；**不是导航/测绘数据**。
+- 完整来源与许可见 `docs/handoff/DEM_SOURCES.md` 与「来源与授权」弹窗。
+
+## 场景类型
+
+### 1. `war` · 省域兵棋（e06 高平之战）
 
 - 9 个省份：太原、代州、潞州、沁水、高平、壶关、端氏、泽州、陵川。
 - 单位有相对 `strength` / `morale` / `attack` / `defense` / `speed`；接战自动结算，低于阈值溃退。
-- **战线是推演结果**：相邻省份归属不同时，取共享边界段自动生成；不是手工画的关键帧。
+- **战线是推演结果**：相邻省份归属不同时，取共享边界段自动生成；不是手工关键帧。
+- 省份色块、边界、城市、河流、单位全部贴在真实 DEM 地形上。
 - 右侧战报 + 底部阶段时间轴；可暂停、调速、重播、跳阶段、开关图层。
-- 场景明确标注「战术示意，不是精确历史阵图」；兵力/省份/战线均为示意。
+- 终局：后周 7 省，北汉/辽各 1 省；同一 `seed` 结果一致。
 
-操作：`Space` 暂停；`1/2/3` 速度 1x/2x/4x；`R` 重播；`L` 图层；`Esc` 返回地图。
+### 2. `battle` · 通用战场（所有 war 事件兜底）
+
+- 预设：`field` / `siege` / `cavalry` / `ambush` / `river`。
+- 自动生成双方小人编队、旗帜、城墙/浮桥/岩石、阶段与战报。
+- 重点事件有显式 `battle` 配置（preset/terrain/sides）；其余用默认 `field`。
+- 场景明确标注「地形真实；兵力/阵型为教学示意」。
+
+### 3. `court` · 朝堂议政（e11 世宗改革）
+
+- 皇帝、宰相、户部官员、御史、禁军将领、侍卫。
+- 按阶段切换发言者：举笏/躬身/聆听；烛光、香炉、屏风、御座。
+- UI 显示“发言”、阶段时间轴、战报；明确“情景复原，不是史料原文”。
+
+### 4. `vr` · 360° 全景
+
+- 2:1 全景（4096×2048）水平循环；拖动环视、滚轮缩放、自动巡游、热点、`Home` 复位。
+- 当前 `assets/vr/` 是 **由 16:9 插画扩展的 2:1 全景示意**，不是全景摄影。
+- 真全景提示词见 `docs/prompts/04_GPT-Image2_VR全景.md`；替换图片即可，不改引擎。
+- 查看器使用 CSS 全景层，不依赖 WebGL 外部纹理，`file://` 双击可用。
+
+## 地图微缩情景
+
+- 当前事件为战争时：事件点旁出现圆形铜底座 + 两撮小人 + 旗帜。
+- 当前事件为改革/朝堂时：出现小亭、案几、文官。
+- 图层面板可关闭「情景小人」。
 
 ## 修改内容
 
 所有文字、事件、路线、镜头、场景参数都在 `data/`：
 
-- `data/theme.wudai.js`：五代十国（默认、重点）
-- `data/theme.suitang.js`：隋唐
-- `data/theme.song.js`：宋朝
+- `data/theme.wudai.js`：五代十国（默认、重点，11 个事件）
+- `data/theme.suitang.js`：隋唐（6 个事件）
+- `data/theme.song.js`：宋朝（4 个事件）
 - `data/themes.index.js`：时期顺序、默认时期、项目名
-- `data/assets.js`：图片/封面/背景清单与状态
-- `data/license.js`：来源、代码许可、AI 声明
+- `data/dem/regions.js`：构建生成的 DEM 网格（勿手改）
+- `data/assets.js`：图片/封面/背景/全景清单与状态
+- `data/license.js`：来源、代码许可、DEM、AI 声明
 
 **只改数据不需要改引擎。** 新增时期：新建 `data/theme.<id>.js`，在 `index.html` 加一行 `<script>`，再把 id 加到 `themes.index.js` 的 `HISTORY_THEME_ORDER`。
 
-### 事件字段（v0.2 增量）
+### 事件字段（v0.4）
 
 ```js
 {
-  id: "e06",
-  figures: ["柴荣（后周世宗）", "刘崇（北汉世祖）"],
-  result: "后周军获胜，北汉退守太原。",
-  impact: "柴荣树立权威，整顿禁军，为后周改革与北伐奠定基础。",
+  id: "e11",
+  kind: "war" | "politics" | "reform" | "diplomacy",
+  figures: ["柴荣（后周世宗）"],
+  result: "……",
+  impact: "……",
   scene: {
-    type: "war",
-    title: "高平之战 · 兵棋推演",
-    duration, tick, seed,
-    camera: { dist, az, polar },
-    sides: [{ id, name, color, short }],
-    map: {
-      provinces: [{ id, name, terrain, polygon, owner, vp, neighbors }],
-      borders: [{ a, b, points }],
-      cities, rivers
-    },
-    units: [{ id, name, side, type, provinceId, strength, morale, attack, defense, speed, orders }],
-    phases: [{ at, date, label, log, effects }],
-    text: { time, place, figures, result, impact }
+    type: "war" | "battle" | "court",
+    // war/battle/court 的字段见 docs/handoff/SCENE_SPEC_v0.4.md
+  },
+  vr: {
+    pano: "assets/vr/wudai/e11.jpg",
+    hotspots: [{ x: 0.5, y: 0.5, label: "柴荣", text: "……" }]
   }
 }
 ```
 
-没有 `scene` 的事件，卡片显示「进入场景（待补）」禁用按钮；不要为了好看伪造场景。
+没有 `scene` 的 `kind:"war"` 事件会自动生成 `battle` 场景；没有场景的政治/外交事件显示禁用按钮。
 
 ### 替换图片
 
@@ -96,24 +134,38 @@
 2. 在 `data/assets.js` 把对应条目的 `status` 改为 `"ready"`。
 3. 规格：1920×1080 JPEG、sRGB、16:9、无文字/水印、单张 ≤ 600KB。
 4. 缺图时卡片显示设计过的占位图，不会出现破图。
+5. `wudai/e11.jpg` 当前是程序化占位图（`status:"placeholder"`），待 GPT-Image2 替换。
+
+### 替换全景
+
+1. 生成 4096×2048（2:1）等距柱状 JPEG。
+2. 覆盖 `assets/vr/<theme>/<event>.jpg`。
+3. 在 `data/assets.js` 的 `vr-*` 条目确认 `status:"ready"`；把 `note` 改为“真 2:1 全景”。
+4. 在事件 `vr.hotspots` 中按新全景调整热点坐标。
+5. 不要对真全景再运行 `tools/build_vr_panos.py`（会覆盖）。
 
 ## 来源与授权
 
 - 外部网站/地图/史料：见「来源与授权」弹窗和 `data/license.js`；使用或参考后必须标注。
+- DEM：Mapzen/Joerd Terrain Tiles；SRTM/GMTED2010/3DEP（USGS）与 ETOPO1（NOAA）公有领域；瓦片打包 attribution 按 Joerd 要求保留。
 - 许可：谁取用谁核实；无法确认就不用。耿雨只负责史实审核，不负责许可判断。
 - AI 插画/封面：主页/页脚统一声明「AI 生成的艺术复原示意，不是历史影像」，不逐张标注。
+- 2:1 全景：当前为 16:9 插画扩展示意，不是全景摄影；真全景槽位已留。
 - Three.js r147 / OrbitControls：MIT，保留版权头。
 
-## 已知限制（Demo v0.2）
+## 已知限制（Demo v0.4）
 
-- 势力边界是**根据公开历史地图简化**的示意多边形，不是精确疆域；需要历史组核对。
+- 势力边界仍是**根据公开历史地图简化**的示意多边形，不是精确疆域；需要历史组核对。
 - 五代十国地图是约 955 年快照，事件跨 907–960；图例已标「地图快照」。
 - 大理、吐蕃、河西、清源军等未单列色块，图例已标「未单列」。
-- 只有高平之战有 3D 场景；其他事件是「待补」。
 - 隋唐/宋朝仍是示意 blob，没有补简化多边形。
-- 24 张事件插画/封面/背景已接入；`map-relief` 可选地图纹理仍缺失，不影响 Demo。
-- 没有真实 DEM / 海拔查询；沙盘为程序化平面。
+- 地形是真实 DEM，但**垂直夸张**；不能当真实海拔/导航数据。
+- 战争兵力、编制、省份/战线是教学示意，不是精确历史阵图。
+- 朝堂人物称谓、台词是情景复原，不是史料原文。
+- `wudai/e11` 卡片图仍为程序化占位；待 GPT-Image2。
+- 2:1 全景当前是插画扩展示意，不是真 360° 摄影；真全景待 GPT-Image2。
 - 没有世界史主题（一战/二战路线）；引擎支持任意经纬度范围，后续可加。
+- 没有 WebXR 头显/双眼立体；本轮 VR 指 360° 图片环视 + 3D 前景。
 
 ## 文件结构
 
@@ -125,19 +177,24 @@ course/
 ├─ js/
 │  ├─ lib/three.min.js, OrbitControls.js
 │  ├─ core.js          渲染器、相机、投影、标签
-│  ├─ map.js           沙盘、势力、河流、地名
-│  ├─ route.js         路线曲线与生长
+│  ├─ dem.js           DEM 解码/采样/高度网格
+│  ├─ figures.js       小人/编队/朝堂角色/微缩情景
+│  ├─ map.js           真实地形、海陆、等高线、势力覆盖层、河流、地名
+│  ├─ route.js         路线曲线、贴地节点与生长
 │  ├─ ui.js            顶栏、时间轴、卡片、问答、来源、场景 UI
 │  ├─ sfx.js           Web Audio 合成音效
-│  ├─ scene.js         war 兵棋推演（省份/战线/兵力/自动战斗）
+│  ├─ vr360.js         360° CSS 全景查看器
+│  ├─ scene.js         war / battle / court / vr 场景调度
 │  └─ main.js          启动、主题/事件切换、键盘、自动演示、API
 ├─ data/
 │  ├─ themes.index.js
 │  ├─ theme.wudai.js / theme.suitang.js / theme.song.js
+│  ├─ dem/regions.js   构建生成，勿手改
 │  ├─ assets.js
 │  └─ license.js
 └─ assets/
    ├─ events/wudai|suitang|song/
+   ├─ vr/wudai|suitang|song/   4096×2048 全景
    ├─ ui/
    └─ map/
 ```
@@ -149,15 +206,29 @@ HISTORY_APP.goTo("e06");
 HISTORY_APP.next();
 HISTORY_APP.play();
 HISTORY_APP.enterScene("e06");
+HISTORY_APP.enterVR("e06");
 HISTORY_APP.exitScene();
 HISTORY_APP.state();
+HISTORY_APP.sceneFor("e07");    // 自动生成的 battle 场景
 ```
 
 URL 参数：`?theme=wudai&event=e06&demo=1&dwell=8000&nointro=1`。
 
+## 构建脚本
+
+```bash
+python tools/build_dem.py --validate     # 生成 course/data/dem/regions.js
+python tools/build_vr_panos.py           # 生成 2:1 全景示意 / e11 占位图
+```
+
+构建脚本只在本机运行；课件运行时不联网、不执行 Python。
+
 ## 需求与交接
 
-- 需求修订：`docs/需求修订_v0.2.md`
+- 需求修订：`docs/需求修订_v0.4.md`
+- 场景契约：`docs/handoff/SCENE_SPEC_v0.4.md`
+- DEM 来源：`docs/handoff/DEM_SOURCES.md`
+- 全景提示词：`docs/prompts/04_GPT-Image2_VR全景.md`
 - 交接：`docs/handoff/DEMO_HANDOFF.md`
 - 资源替换：`docs/handoff/RESOURCE_REPLACEMENT.md`
 - 测试记录：`docs/handoff/QA.md`
