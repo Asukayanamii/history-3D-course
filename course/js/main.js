@@ -165,6 +165,7 @@
     opts = opts || {};
     if (!THEMES[id]) { console.warn("[史境] 未知主题：", id); return Promise.resolve(false); }
     if (st.switching) return Promise.resolve(false);
+    if (HS.scene && HS.scene.active) HS.scene.exit();
     if (id === st.themeId && !opts.force) {
       if (opts.enter !== false) goTo(opts.eventId || st.theme.meta.defaultEventId);
       return Promise.resolve(true);
@@ -277,6 +278,15 @@
   ui.on("close-card", closeCard);
   ui.on("ask", ask);
   ui.on("reveal", ask);
+  ui.on("scene", function () {
+    var ev = st.events[st.idx];
+    if (!ev) { ui.toast("请先选择一个事件"); return; }
+    if (!ev.scene) { ui.toast("该事件暂无 3D 场景，待补"); return; }
+    if (st.playing) pause(true);
+    if (!HS.scene.enter(ev.scene, ev)) ui.toast("场景数据不完整");
+  });
+  ui.on("scene-exit", function () { HS.scene.exit(); });
+  ui.on("scene-play", function () { HS.scene.toggle(); });
   ui.on("layers", function () { ui.toggleLayers(); });
   ui.on("layer", function (o) { applyLayer(o.name, o.on); });
   ui.on("sound", toggleMute);
@@ -300,6 +310,12 @@
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     var k = e.key, handled = true;
 
+    if (HS.scene && HS.scene.active) {
+      if (k === "Escape" || k === "e" || k === "E") { HS.scene.exit(); e.preventDefault(); }
+      else if (k === " " || k === "Spacebar") { HS.scene.toggle(); e.preventDefault(); }
+      return;
+    }
+
     if (ui.introVisible()) {
       if (k === "Enter" || k === " " || k === "ArrowRight" || k === "PageDown") start();
       else if (k === "1" || k === "2" || k === "3") { var tid = ORDER[+k - 1]; if (tid) switchTheme(tid, { enter: false, quick: true }); }
@@ -313,6 +329,11 @@
       case "ArrowLeft": case "PageUp": case "Backspace": prev({ user: true }); break;
       case "Home": goHome(); break;
       case "q": case "Q": ask(); break;
+      case "e": case "E":
+        var sev = st.events[st.idx];
+        if (sev && sev.scene) { if (st.playing) pause(true); HS.scene.enter(sev.scene, sev); }
+        else ui.toast("该事件暂无 3D 场景，待补");
+        break;
       case "p": case "P": st.playing ? pause(false) : play(); break;
       case "l": case "L": ui.toggleLayers(); break;
       case "m": case "M": toggleMute(); break;
@@ -361,12 +382,20 @@
     start: start,
     ask: ask,
     toggleLayer: function (name, on) { applyLayer(name, on == null ? !st.layers[name] : !!on); },
+    enterScene: function (id) {
+      var ev = id ? st.events.filter(function (e) { return e.id === id; })[0] : st.events[st.idx];
+      if (!ev || !ev.scene) return false;
+      return HS.scene.enter(ev.scene, ev);
+    },
+    exitScene: function () { return HS.scene.exit(); },
+    toggleScene: function () { return HS.scene.toggle(); },
     state: function () {
       var ev = st.events[st.idx], r = st.routes ? st.routes.state() : { routeId: "", progress: 0 };
       return {
         theme: st.themeId, eventId: ev ? ev.id : "", routeId: r.routeId, progress: r.progress,
         playing: st.playing, muted: sfx.muted, index: st.idx, total: st.events.length,
-        cardOpen: ui.cardOpen, flying: HS.camera.flying, switching: st.switching, modal: ui.anyModal(), dwell: params.dwell
+        cardOpen: ui.cardOpen, flying: HS.camera.flying, switching: st.switching, modal: ui.anyModal(), dwell: params.dwell,
+        scene: !!(HS.scene && HS.scene.active)
       };
     },
     screenOf: function (lon, lat) {

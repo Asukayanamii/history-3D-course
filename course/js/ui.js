@@ -108,10 +108,16 @@
       li.addEventListener("click", function () { fire("route", r.id); });
       ul.appendChild(li);
     });
-    var key = (theme.map.regions || []).filter(function (r) { return r.highlight; }).map(function (r) { return r.name; });
+    var key = (theme.map.regions || []).filter(function (r) { return r.highlight; }).map(function (r) {
+      return r.name + (r.highlightReason ? "（" + r.highlightReason + "）" : "");
+    });
+    var omitted = (theme.map.omitted || []).map(function (o) { return o.name; }).filter(Boolean);
+    var snap = theme.map.mapSnapshot || m.periodLabel || "";
     $("legendNote").innerHTML =
       (key.length ? "<span class='key-swatch'></span>重点政权：" + U.esc(key.join("、")) + "<br>" : "") +
-      U.esc(m.periodLabel || "") + " 形势示意<br>" + U.esc(m.sourceNote || "");
+      (snap ? "地图快照：" + U.esc(snap) + "<br>" : "") +
+      (omitted.length ? "未单列：" + U.esc(omitted.join("、")) + "<br>" : "") +
+      U.esc(m.periodLabel || "") + " 形势示意<br><span class='muted'>历史地图为示意；外部来源与许可见「来源与授权」</span>";
 
     // 时间轴
     var evs = HS.eventsOf(theme);
@@ -167,6 +173,15 @@
     $("cardPlace").textContent = ev.place || "";
     $("cardTitle").textContent = ev.title;
     $("cardSum").textContent = ev.summary || "";
+    var figs = ev.figures || [];
+    var fbox = $("cardFigures");
+    if (figs.length) {
+      fbox.hidden = false;
+      fbox.innerHTML = "<b>主要人物</b>：" + figs.map(function (f) { return U.esc(f); }).join("、");
+    } else {
+      fbox.hidden = true;
+      fbox.innerHTML = "";
+    }
     var ul = $("cardDetail");
     ul.innerHTML = "";
     (ev.detail || []).slice(0, 5).forEach(function (d) { ul.appendChild(U.el("li", "", U.esc(d))); });
@@ -198,6 +213,12 @@
     var prev = document.querySelector("#card [data-act=prev]"), next = document.querySelector("#card [data-act=next]");
     prev.disabled = idx <= 0;
     next.disabled = idx >= total - 1;
+    var sb = $("sceneBtn"), sbn = $("sceneBtnNote");
+    if (sb) {
+      sb.disabled = !ev.scene;
+      sb.title = ev.scene ? "进入 3D 全知场景（E）" : "该事件暂无 3D 场景，待补";
+      if (sbn) sbn.hidden = !!ev.scene;
+    }
     document.querySelector("#card .card-body").scrollTop = 0;
   };
 
@@ -213,6 +234,43 @@
     var c = $("card");
     if (window.innerWidth < 900) return 0; // 小屏为底部抽屉，不需要左移
     return c.offsetWidth + 28;
+  };
+
+  /* ---------------- 3D 场景 UI ---------------- */
+  ui.isSceneOpen = function () { return !$("sceneView").hidden; };
+
+  ui.openScene = function (data, ev) {
+    data = data || {};
+    var t = data.text || {};
+    $("sceneTitle").textContent = data.title || (ev && ev.title) || "3D 场景";
+    $("sceneSub").textContent = data.subtitle || "";
+    $("sceneTime").textContent = t.time || (ev && ev.date) || "";
+    $("scenePlace").textContent = t.place || (ev && ev.place) || "";
+    $("sceneFigures").textContent = (t.figures || (ev && ev.figures) || []).join("、") || "待补";
+    $("sceneResult").textContent = t.result || (ev && ev.result) || "待补";
+    $("sceneImpact").textContent = t.impact || (ev && ev.impact) || "待补";
+    $("sceneNote").textContent = data.note || "";
+    var legend = $("sceneLegend");
+    legend.innerHTML = "";
+    (data.units || []).forEach(function (u) {
+      legend.appendChild(U.el("span", "unit", "<i style='--c:" + U.esc(u.color || "#888") + "'></i>" + U.esc(u.name || u.id)));
+    });
+    $("scenePhase").textContent = (data.phases && data.phases[0] && data.phases[0].label) || "战况";
+    $("sceneProgress").style.width = "0%";
+    $("sceneView").hidden = false;
+    ui.setScenePlaying(true);
+  };
+
+  ui.closeScene = function () { $("sceneView").hidden = true; };
+  ui.setScenePlaying = function (on) {
+    var label = $("scenePlayLabel");
+    if (label) label.textContent = on ? "暂停" : "继续";
+    var btn = $("scenePlayBtn");
+    if (btn) btn.classList.toggle("is-play", on);
+  };
+  ui.setScenePhase = function (label, progress) {
+    $("scenePhase").textContent = label || "战况";
+    $("sceneProgress").style.width = Math.max(0, Math.min(1, progress || 0)) * 100 + "%";
   };
 
   /* ---------------- 弹窗 ---------------- */

@@ -77,13 +77,14 @@
     <h2 id="cardTitle"></h2>
     <div class="card-chips" id="cardChips"></div>
     <p class="card-sum" id="cardSum"></p>
+    <div class="card-figures" id="cardFigures" hidden></div>
     <ul class="card-detail" id="cardDetail"></ul>
   </div>
   <div class="card-acts">
     <button class="btn" data-act="prev" title="上一站（←）"><svg viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></svg>上一站</button>
     <button class="btn btn-main" data-act="next" title="下一站（→）">下一站<svg viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></svg></button>
     <button class="btn" data-act="ask" title="课堂提问（Q）"><svg viewBox="0 0 24 24"><path d="M5 5.5h14v10H11l-4 3.5v-3.5H5z"/><path d="M10.3 9a1.8 1.8 0 1 1 2.4 1.7c-.5.2-.7.5-.7 1M12 13.6v.1"/></svg>课堂提问</button>
-    <button class="btn" disabled title="三维场景再现为 M4 规划功能，本 Demo 未实现"><svg viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>进入场景<small>（规划中）</small></button>
+    <button class="btn" id="sceneBtn" data-act="scene" title="进入 3D 场景"><svg viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg><span id="sceneBtnLabel">进入场景</span><small id="sceneBtnNote">（待补）</small></button>
   </div>
   <button class="card-close" data-act="close" title="收起卡片（Esc）"><svg viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17"/></svg></button>
 </article>
@@ -151,6 +152,8 @@
           <dt><kbd>←</kbd> <kbd>PageUp</kbd> <kbd>Backspace</kbd></dt><dd>上一站</dd>
           <dt><kbd>Home</kbd></dt><dd>回到全景</dd>
           <dt><kbd>Q</kbd></dt><dd>课堂提问 / 揭晓答案</dd>
+          <dt><kbd>E</kbd></dt><dd>进入 / 退出 3D 场景</dd>
+          <dt><kbd>空格</kbd>（场景内）</dt><dd>暂停 / 继续战况</dd>
           <dt><kbd>P</kbd></dt><dd>自动演示 开 / 关</dd>
           <dt><kbd>L</kbd></dt><dd>图层面板</dd>
           <dt><kbd>M</kbd></dt><dd>静音 / 恢复</dd>
@@ -190,6 +193,37 @@
 <div id="demoBadge" hidden><i></i>自动演示中 · 按 P 暂停</div>
 <div id="toast" hidden></div>
 <div id="fade"></div>
+
+<!-- 3D 场景（全知视角） -->
+<div id="sceneView" hidden>
+  <canvas id="sceneCanvas"></canvas>
+  <div id="sceneVignette"></div>
+  <header id="sceneTop">
+    <button class="scene-back" data-act="scene-exit" title="返回地图（Esc）">
+      <svg viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></svg>返回地图<kbd>Esc</kbd>
+    </button>
+    <div class="scene-heading">
+      <span class="scene-kicker">全知视角 · 艺术复原示意</span>
+      <h2 id="sceneTitle"></h2>
+      <p id="sceneSub"></p>
+    </div>
+    <button class="btn scene-play" data-act="scene-play" id="scenePlayBtn"><span id="scenePlayLabel">暂停</span><kbd>Space</kbd></button>
+  </header>
+  <aside id="scenePanel">
+    <div class="scene-meta"><span id="sceneTime"></span><span id="scenePlace"></span></div>
+    <section class="scene-section"><h4>主要人物</h4><p id="sceneFigures"></p></section>
+    <section class="scene-section"><h4>结果</h4><p id="sceneResult"></p></section>
+    <section class="scene-section"><h4>影响</h4><p id="sceneImpact"></p></section>
+    <section class="scene-section"><h4>战场</h4><div id="sceneLegend"></div></section>
+    <p class="scene-note" id="sceneNote"></p>
+  </aside>
+  <footer id="sceneFoot">
+    <span class="scene-phase" id="scenePhase">接战</span>
+    <div class="scene-progress"><i id="sceneProgress"></i></div>
+    <span class="scene-hint">拖动旋转 · 滚轮缩放 · 空格暂停</span>
+  </footer>
+</div>
+
 <noscript><p class="noscript">本课件需要启用 JavaScript。</p></noscript>
 
 <!-- 数据（教师只需修改这些文件） -->
@@ -208,6 +242,7 @@
 <script src="js/route.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/sfx.js"></script>
+<script src="js/scene.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

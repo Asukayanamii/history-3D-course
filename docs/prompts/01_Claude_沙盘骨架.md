@@ -1,6 +1,8 @@
 # 01 · Claude 提示词：三维历史沙盘骨架（第一轮 + 第二轮）
 
 > 用法：在能读写本仓库的编码 Agent 中，把本文件全文作为任务说明。工作目录为仓库根目录。先读 `docs/prompts/00_协作总览与数据契约.md`，它是共同契约。
+>
+> **v0.2 更新（2026-10-23）**：以 `docs/聊天记录整理.md` 为准，新增真实疆域分层、结构化 `figures/result/impact`、e06 高平之战全知场景、`E` 场景快捷键。完整修订见 `docs/需求修订_v0.2.md`。
 
 ---
 
@@ -25,6 +27,7 @@
 - `docs/资源来源推测.md`（template 的资源与构建链分析）
 - `docs/可能有用的历史资源网站.txt`
 - `docs/prompts/00_协作总览与数据契约.md`（**最高优先级契约**）
+- `docs/需求修订_v0.2.md`（以聊天记录为准的修订：真实疆域、场景、结构化人物）
 - `template/长征3D交互课件/index.html`
 - `template/长征3D交互课件/js/app.js`
 - `template/长征3D交互课件/js/sfx.js`
@@ -275,7 +278,8 @@ docs/handoff/
 - 顶栏：左侧项目名「史境 · 三维历史沙盘」（占位名，可替换）+ 当前主题；中间三个时期标签；右侧工具（全景、图层、音效、演示、全屏、帮助）。
 - 当前事件名：顶栏第二行或中间胶囊，随事件更新。
 - 底部时间轴：一条细线 + 事件圆点 + 日期；当前事件高亮；点击跳转；左右两端是上一站/下一站。
-- 右侧事件卡片：约 420px，滑入滑出；图片 16:9、日期/地点、标题、摘要、3–5 条要点、按钮组（上一站/下一站、课堂提问、进入场景（禁用））。
+- 右侧事件卡片：约 420px，滑入滑出；图片 16:9、日期/地点、标题、摘要、3–5 条要点、主要人物、按钮组（上一站/下一站、课堂提问、进入场景）。
+- 「进入场景」只在 `ev.scene` 存在时可点击；没有场景时禁用并显示「（待补）」，不要统一禁用。
 - 课堂提问：全屏遮罩，先出问题，再按 `Q`/点击揭晓答案；`Esc` 关闭。
 - 来源与授权：顶栏/页脚入口；按主题列出外部网站/地图参考（`sourceRecords`）、事件史料来源、Three.js MIT。**不要**为每张 AI 图单列来源。
 - 主页/首屏和主界面页脚各有一句统一声明：历史地图为示意性简化；外部地图参考见「来源与授权」；插画/封面为 AI 生成的艺术复原示意。
@@ -332,7 +336,20 @@ docs/handoff/
 window.__sandbox = window.HISTORY_APP;
 ```
 
-至少支持：`switchTheme`、`goTo`、`next`、`prev`、`play`、`pause`、`goHome`、`state`、`screenOf`、`isFlying`。这些钩子用于自测和后续录屏，不影响正常用户。
+至少支持：`switchTheme`、`goTo`、`next`、`prev`、`play`、`pause`、`goHome`、`state`、`screenOf`、`isFlying`、`enterScene`、`exitScene`、`toggleScene`。这些钩子用于自测和后续录屏，不影响正常用户。
+
+### 4.11 3D 全知场景（v0.2，至少 1 个）
+
+- 用独立的 `js/scene.js` + `#sceneCanvas` + 独立 `WebGLRenderer`，不要干扰主沙盘。
+- 当前只实现 `scene.type: "battlefield"`；`court/architecture` 返回 false，不要假装已实现。
+- 触发：卡片「进入场景」（`ev.scene` 存在才启用）或 `E`；退出：`Esc`/返回按钮；场景内 `Space` 暂停/继续。
+- 场景内容：
+  - 低多边形地面/山脊/军阵/旗帜；全部程序化几何体 + Canvas 纹理，不加载图片。
+  - `units` 的 `start/moveTo/retreatTo` 是场景局部坐标，不是经纬度；按 `moveAt/moveDur/retreatAt/retreatDur` 插值。
+  - 战况阶段 `phases` + 进度条；镜头可旋转/缩放；默认缓慢自动旋转，用户操作后停止。
+  - 右侧面板显示时间、地点、主要人物、结果、影响；明确「低多边形艺术复原，不是历史影像」。
+- 场景数据契约见 `00_协作总览与数据契约.md` 5.4。
+- 本轮只做 `wudai/e06 高平之战`；其他事件没有 `scene`，显示「进入场景（待补）」。
 
 ## 五、数据文件
 
@@ -427,6 +444,9 @@ window.__sandbox = window.HISTORY_APP;
 12. 首屏 3 秒内可交互；`course/` < 50MB。
 13. 来源与授权弹窗列出外部网站/地图参考和事件史料；主页/页脚有统一 AI 声明；不要求逐图 AI 角标或卡片逐条标来源。
 14. 没有复制 template 的代码/文字/图片/CSS；只用两个 MIT 库文件。
+15. 五代十国至少 6 个主要政权有简化多边形；图例显示快照/未单列/重点理由。
+16. `e06` 可进入场景；`E`/按钮进入，`Space` 暂停，`Esc` 返回；场景文字齐全。
+17. 其他事件没有 `scene` 时显示「进入场景（待补）」，不误导为全部已实现。
 
 把结果写进 `docs/handoff/QA.md`：测试项、结果、截图/备注、已知问题。
 
@@ -435,8 +455,10 @@ window.__sandbox = window.HISTORY_APP;
 - `course/index.html` 可双击运行。
 - 三个主题可切换；五代十国 10 个事件完整走通；隋唐/宋朝各 3–6 个事件可走。
 - F1–F4 全部覆盖；F5.1、F7.1–F7.4 至少各一次。
+- 五代十国至少 6 个主要政权有简化多边形；图例显示快照/未单列/重点理由。
+- `e06` 有可进入的全知 3D 场景；其他事件禁用「待补」。
 - 所有占位可追踪；外部网站/地图/史料来源有记录；AI 资源有主页统一声明。
-- 三份 handoff 文档齐全。
+- 三份 handoff 文档 + `course/README.md` 齐全。
 - 控制台无报错；无网络请求。
 
 ## 十、第二轮：整合 DeepSeek 与 GPT-Image2
@@ -450,7 +472,10 @@ window.__sandbox = window.HISTORY_APP;
    - 坐标在 `bounds` 内；
    - `events[].order` 连续；
    - `sources` 非空且有 `confidence`；
-   - `credits.sourceRecords` 有来源记录。
+   - `credits.sourceRecords` 有来源记录；
+   - `figures/result/impact` 是否补齐（至少场景事件）；
+   - 多边形是否在 bounds 内、无自交；
+   - `scene` 是否存在且 `text` 完整。
 3. **合并**：保留引擎，不改结构；只调整必要的地方（例如 `meta.home`、`focus`、长文本溢出）。
 4. **接入图片**：检查 `assets/events/<主题>/<事件>.jpg` 是否存在、尺寸是否 16:9；更新 `assets.js` 的 `status`；卡片图片用 `object-fit: cover`，必要时按 `image.position` 调整裁切。
 5. **来源 UI**：确认「来源与授权」能显示 DeepSeek 的外部网站/地图参考与事件史料；AI 图片不需要逐张标注，但主页/页脚统一声明必须在；没有来源时显示「待补全」。
@@ -466,7 +491,7 @@ window.__sandbox = window.HISTORY_APP;
 - 不 `fetch` 本地 JSON；不用 ES Module。
 - 不编造史料、引文、URL、页码、统计数字。
 - 不把示意边界说成精确疆域；不把 AI 图说成历史影像。
-- 不实现 VR/3D 场景却宣称完成；只留禁用入口。
+- 不把“只有 e06 有场景”说成“所有事件都能进入场景”；不实现 VR/其他场景却宣称完成。
 - 不隐藏占位；不删除来源入口。
 - 不修改 `template/` 和 `docs/需求文档.md`。
 

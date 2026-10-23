@@ -426,3 +426,82 @@ code, .mono { font-family: Consolas, "SFMono-Regular", Menlo, monospace; font-si
   .tl-dot.is-cur .tl-date { display: block; }
   #foot span:first-child { display: none; }
 }
+
+/* ---------------- 卡片：主要人物 ---------------- */
+.card-figures {
+  margin-top: 10px; padding: 8px 11px; border-left: 2px solid var(--accent);
+  background: rgba(255, 255, 255, 0.035); border-radius: 0 5px 5px 0;
+  font-size: 14px; line-height: 1.65; color: var(--paper-dim);
+}
+.card-figures b { color: var(--sand); font-weight: 600; margin-right: 6px; letter-spacing: 0.06em; }
+
+/* ---------------- 3D 场景（全知视角） ---------------- */
+#sceneView { position: fixed; inset: 0; z-index: 55; overflow: hidden; background: #07100e; }
+#sceneView[hidden] { display: none; }
+#sceneCanvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; outline: none; }
+#sceneVignette {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 55% at 50% 46%, rgba(4, 10, 9, 0) 0%, rgba(4, 10, 9, 0.18) 58%, rgba(3, 8, 7, 0.72) 100%),
+    linear-gradient(rgba(4, 10, 9, 0.55), transparent 18%, transparent 72%, rgba(3, 8, 7, 0.78));
+}
+#sceneTop {
+  position: absolute; z-index: 3; left: 0; right: 0; top: 0;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
+  padding: 20px 28px 42px; pointer-events: none;
+  background: linear-gradient(rgba(3, 9, 8, 0.92), rgba(3, 9, 8, 0));
+}
+#sceneTop > * { pointer-events: auto; }
+.scene-back {
+  display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 7px;
+  font: 14px var(--f-ui); color: var(--paper-dim); background: rgba(8, 18, 16, 0.7);
+  border: 1px solid var(--hair); transition: 0.2s;
+}
+.scene-back:hover { color: #fff; border-color: var(--sand-dim); background: rgba(14, 30, 26, 0.9); }
+.scene-back svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.scene-back kbd { margin-left: 3px; }
+.scene-heading { min-width: 0; text-align: center; }
+.scene-kicker { font: 600 12px var(--f-ui); letter-spacing: 0.28em; color: var(--sand); }
+#sceneTitle { margin: 7px 0 4px; font: 600 30px/1.2 var(--f-title); letter-spacing: 0.14em; color: #fff; text-shadow: 0 4px 24px rgba(0, 0, 0, 0.55); }
+#sceneSub { font: 14px var(--f-ui); letter-spacing: 0.08em; color: var(--paper-dim); }
+.scene-play { flex: none; }
+.scene-play kbd { margin-left: 7px; }
+
+#scenePanel {
+  position: absolute; z-index: 3; right: 28px; top: 118px; width: min(360px, 30vw);
+  max-height: calc(100vh - 230px); overflow-y: auto;
+  padding: 18px 20px 16px; border-radius: 12px;
+  background: rgba(7, 16, 14, 0.84); border: 1px solid var(--hair);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5); backdrop-filter: blur(9px);
+  scrollbar-width: thin; scrollbar-color: #4a5d54 transparent;
+}
+.scene-meta { display: flex; flex-wrap: wrap; gap: 8px 14px; padding-bottom: 12px; border-bottom: 1px solid var(--hair);
+  font: 13px var(--f-ui); letter-spacing: 0.05em; color: var(--sand); }
+.scene-section { padding-top: 12px; }
+.scene-section + .scene-section { border-top: 1px solid var(--hair); }
+.scene-section h4 { font: 600 12px var(--f-ui); letter-spacing: 0.24em; color: var(--sand-dim); margin-bottom: 5px; }
+.scene-section p { font: 14.5px/1.75 var(--f-body); color: var(--paper-dim); }
+#sceneLegend { display: flex; flex-wrap: wrap; gap: 7px 14px; }
+#sceneLegend .unit { display: inline-flex; align-items: center; gap: 7px; font: 13px var(--f-ui); color: var(--paper-dim); }
+#sceneLegend .unit i { width: 18px; height: 4px; border-radius: 2px; background: var(--c); box-shadow: 0 0 7px var(--c); }
+.scene-note { margin-top: 14px; padding-top: 11px; border-top: 1px solid var(--hair);
+  font: 12px/1.6 var(--f-ui); color: var(--muted); }
+
+#sceneFoot {
+  position: absolute; z-index: 3; left: 28px; right: 28px; bottom: 20px;
+  display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-radius: 9px;
+  background: rgba(6, 15, 13, 0.78); border: 1px solid var(--hair); backdrop-filter: blur(8px);
+}
+.scene-phase { flex: none; font: 600 14px var(--f-ui); letter-spacing: 0.12em; color: var(--sand); }
+.scene-progress { flex: 1; height: 3px; border-radius: 2px; background: rgba(239, 228, 204, 0.14); overflow: hidden; }
+.scene-progress i { display: block; width: 0; height: 100%; border-radius: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.scene-hint { flex: none; font: 12px var(--f-ui); color: var(--muted); letter-spacing: 0.06em; }
+
+@media (max-width: 900px) {
+  #sceneTop { padding: 12px 14px 30px; gap: 10px; }
+  .scene-heading { display: none; }
+  #scenePanel { left: 10px; right: 10px; top: auto; bottom: 92px; width: auto; max-height: 38vh; padding: 14px 16px; }
+  #sceneFoot { left: 10px; right: 10px; bottom: 10px; gap: 10px; }
+  .scene-hint { display: none; }
+  #sceneLegend { gap: 6px 10px; }
+}

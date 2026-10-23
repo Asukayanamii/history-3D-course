@@ -119,6 +119,9 @@ window.HISTORY_THEMES.suitang = {
         "据《资治通鉴》记载，安禄山率蕃汉步骑十五万，号称二十万。",
         "叛军南下，河北州县多不战而降，很快逼近洛阳。"
       ],
+      figures: ["安禄山（范阳节度使）", "杨国忠（唐宰相）"],
+      result: "安禄山以讨杨国忠为名在范阳起兵，叛军迅速南下。",
+      impact: "安史之乱爆发，唐朝由盛转衰。",
       ask: { q: "安禄山起兵的名义是什么？他为什么能迅速南下？", a: "以讨杨国忠为名；他长期经营河北，掌握三镇重兵，唐朝内地武备空虚，州县多不战而降。" },
       image: { file: "assets/events/suitang/e01.jpg", alt: "范阳边镇唐军集结、安禄山起兵的艺术复原示意。", promptId: "suitang-e01", credit: "AI 艺术复原示意" },
       focus: { dist: 20, az: 10, polar: 48 },
@@ -143,6 +146,9 @@ window.HISTORY_THEMES.suitang = {
         "唐廷急调哥舒翰率军守潼关，阻止叛军西进。",
         "洛阳失守使唐朝失去东都，关中门户暴露。"
       ],
+      figures: ["安禄山", "封常清", "高仙芝"],
+      result: "叛军攻占洛阳，安禄山称帝，国号大燕。",
+      impact: "叛军控制中原核心，唐廷震动。",
       ask: { q: "叛军攻占洛阳后，安禄山建立了什么政权？", a: "大燕；安禄山在洛阳称帝，年号圣武。" },
       image: { file: "assets/events/suitang/e02.jpg", alt: "叛军进入洛阳城的艺术复原示意。", promptId: "suitang-e02", credit: "AI 艺术复原示意" },
       focus: { dist: 20, az: -6, polar: 50 },
@@ -167,6 +173,9 @@ window.HISTORY_THEMES.suitang = {
         "潼关失守，关中门户洞开，长安震动。",
         "哥舒翰被俘，后降安禄山；唐军主力损失惨重。"
       ],
+      figures: ["哥舒翰", "唐玄宗", "杨国忠"],
+      result: "唐军出关决战失败，潼关失守。",
+      impact: "长安门户洞开，玄宗被迫西逃。",
       ask: { q: "潼关失守的主要原因是什么？", a: "唐玄宗、杨国忠催逼哥舒翰放弃坚守、出关决战；唐军在中伏后大败，潼关失守。战略决策失误是主因。" },
       image: { file: "assets/events/suitang/e03.jpg", alt: "潼关山隘唐军溃败的艺术复原示意。", promptId: "suitang-e03", credit: "AI 艺术复原示意" },
       focus: { dist: 16, az: -12, polar: 52 },
@@ -191,6 +200,9 @@ window.HISTORY_THEMES.suitang = {
         "玄宗继续入蜀；太子李亨北上灵武，另行组织抵抗。",
         "叛军进入长安，唐朝失去首都，中央权威受到沉重打击。"
       ],
+      figures: ["唐玄宗", "杨贵妃", "陈玄礼", "李亨（唐肃宗）"],
+      result: "玄宗西逃入蜀，马嵬驿兵变；长安随后陷落。",
+      impact: "唐廷分裂为入蜀与北上两条线，太子李亨北上灵武。",
       ask: { q: "马嵬驿兵变与长安陷落有什么关系？", a: "潼关失守后玄宗西逃，禁军在马嵬驿哗变，逼死杨贵妃；玄宗入蜀、太子北上，长安随后陷落。兵变是逃亡途中的政治危机。" },
       image: { file: "assets/events/suitang/e04.jpg", alt: "马嵬驿秋日山道、禁军围拢的艺术复原示意。", promptId: "suitang-e04", credit: "AI 艺术复原示意" },
       focus: { dist: 18, az: -16, polar: 50 },
@@ -215,6 +227,9 @@ window.HISTORY_THEMES.suitang = {
         "肃宗遥尊玄宗为太上皇，重新集结西北边军与各路勤王军。",
         "灵武朝廷成为平叛的政治中心，但财政与军力都很紧张。"
       ],
+      figures: ["李亨（唐肃宗）", "郭子仪", "李光弼"],
+      result: "李亨在灵武即位，遥尊玄宗为太上皇。",
+      impact: "唐廷重建平叛指挥中心，西北边军成为平叛主力。",
       ask: { q: "唐肃宗为什么在灵武即位？", a: "长安陷落、玄宗入蜀后，唐廷需要一个就近指挥平叛的中心；李亨在灵武得到西北边军支持，于是即位，遥尊玄宗为太上皇。" },
       image: { file: "assets/events/suitang/e05.jpg", alt: "灵武边城简陋即位礼的艺术复原示意。", promptId: "suitang-e05", credit: "AI 艺术复原示意" },
       focus: { dist: 20, az: -10, polar: 48 },
@@ -240,6 +255,9 @@ window.HISTORY_THEMES.suitang = {
         "回纥军参与作战，战后获得大量掠获；唐廷为此付出外交代价。",
         "安史之乱至763年才结束，唐朝从此由盛转衰，藩镇割据加深。"
       ],
+      figures: ["郭子仪", "李光弼", "回纥援军"],
+      result: "唐军借回纥兵收复长安、洛阳。",
+      impact: "安史之乱迎来转折，但藩镇割据与财政问题延续；763 年叛乱结束。",
       ask: { q: "唐军收复两京借助了哪支外部力量？安史之乱何时结束？", a: "回纥兵；安史之乱至763年结束。两京收复是重要转折，但没有立即结束战争。" },
       image: { file: "assets/events/suitang/e06.jpg", alt: "香积寺黎明战场上唐军与回纥骑兵并肩反攻的艺术复原示意。", promptId: "suitang-e06", credit: "AI 艺术复原示意" },
       focus: { dist: 26, az: 0, polar: 46 },
