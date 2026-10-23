@@ -68,11 +68,12 @@
       type: "battle",
       title: ev.title + " · 战场情景",
       subtitle: (ev.shortDate || ev.date || "") + " · " + sides.map(function (s) { return s.name; }).join(" vs "),
-      note: "地形为真实 DEM；兵力、编制、阵型与战线为教学情景示意，不是精确历史阵图。",
+      note: "地形为真实 DEM；兵力、编制、阵型、占地网格与战线为教学情景示意，不是精确历史阵图或历史疆域。",
       duration: cfg.duration || 24,
       seed: cfg.seed || (U.hash(ev.id) % 100000),
       preset: cfg.preset || "field",
       terrain: battleTerrain(ev, cfg),
+      grid: cfg.grid || null,
       sides: sides,
       phases: phases,
       text: { time: ev.date, place: ev.place, figures: ev.figures, result: ev.result, impact: ev.impact },
@@ -420,6 +421,7 @@
       } else if (sc.type === "battle" || sc.type === "court") {
         if (k === "1" || k === "2" || k === "3") HS.scene.setSpeed(k === "3" ? 4 : +k);
         else if (k === "r" || k === "R") HS.scene.restart();
+        else if ((k === "l" || k === "L") && sc.type === "battle") ui.toggleWarLayers();
         else if (k === "v" || k === "V") enterVR();
         else if (k === "Escape" || k === "e" || k === "E") HS.scene.exit();
         else if (k === " " || k === "Spacebar") HS.scene.toggle();

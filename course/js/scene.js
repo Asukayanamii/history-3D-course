@@ -1194,6 +1194,238 @@
     return u;
   }
 
+  function battleSideIndex(data, side) {
+    if (typeof side === "number") return side;
+    var arr = data.sides || [];
+    for (var i = 0; i < arr.length; i++) if (arr[i].id === side) return i;
+    return 0;
+  }
+
+  function battleMotion(data, d, t) {
+    var ma = d.moveAt == null ? 0.15 : d.moveAt;
+    var md = d.moveDur == null ? 0.5 : d.moveDur;
+    var move = U.easeInOutCubic(U.clamp((t - ma) / md, 0, 1));
+    var x = U.lerp(d.start.x, d.end.x, move);
+    var z = U.lerp(d.start.z, d.end.z, move);
+    var retreat = 0;
+    if (battleSideIndex(data, d.side) === 1 && t > 0.8) {
+      retreat = U.clamp((t - 0.8) / 0.2, 0, 1);
+      x = U.lerp(d.end.x, d.start.x, retreat);
+      z = U.lerp(d.end.z, d.start.z, retreat);
+    }
+    return { x: x, z: z, move: move, retreat: retreat > 0 };
+  }
+
+  function battleHealth(B, unit, t) {
+    var d = unit.def;
+    var base = d.strength == null ? 100 : d.strength;
+    var baseMorale = d.morale == null ? 100 : d.morale;
+    var after = U.clamp((t - 0.46) / 0.54, 0, 1);
+    var defender = battleSideIndex(B.data, d.side) === 1;
+    var wall = !!d.wall;
+    var cavalry = (d.type || "infantry") === "cavalry";
+    var river = (B.data.preset || "") === "river";
+    var strengthLoss, moraleLoss;
+    if (defender) {
+      strengthLoss = wall ? 55 : 70;
+      if (river) strengthLoss *= 0.85;
+      if (cavalry) strengthLoss *= 0.92;
+      moraleLoss = 100;
+      if (river) moraleLoss *= 0.98;
+      var late = U.clamp((t - 0.66) / 0.34, 0, 1);
+      strengthLoss += late * 30;
+      moraleLoss += late * (wall ? 50 : 40);
+    } else {
+      strengthLoss = cavalry ? 32 : 26;
+      if (river) strengthLoss *= 1.15;
+      moraleLoss = cavalry ? 20 : 17;
+      if (river) moraleLoss *= 1.1;
+    }
+    var strength = U.clamp(base - after * strengthLoss, 0, 100);
+    var morale = U.clamp(baseMorale - after * moraleLoss, 0, 100);
+    return {
+      strength: strength, morale: morale,
+      routed: strength <= 20 || morale <= 25,
+      defender: defender, wall: wall
+    };
+  }
+
+  function battleStatus(unit, t, hp) {
+    if (unit.retreating || hp.routed) return "溃退";
+    if (t > 0.55) return "接战";
+    if (t > (unit.def.moveAt == null ? 0.15 : unit.def.moveAt)) return "推进";
+    return "待命";
+  }
+
+  function drawBattleHealth(unit, side, hp, status) {
+    var c = unit.canvas, x = unit.ctx;
+    if (!c || !x) return;
+    var W = c.width, H = c.height;
+    x.clearRect(0, 0, W, H);
+    x.fillStyle = "rgba(5,13,11,.9)";
+    roundRect(x, 3, 3, W - 6, H - 6, 15); x.fill();
+    x.strokeStyle = side.color || "#888888";
+    x.lineWidth = 3;
+    roundRect(x, 3, 3, W - 6, H - 6, 15); x.stroke();
+    x.fillStyle = side.color || "#888888";
+    roundRect(x, 11, 11, 7, H - 22, 4); x.fill();
+    x.textAlign = "left";
+    x.textBaseline = "middle";
+    x.fillStyle = side.color || "#888888";
+    x.font = "700 19px 'Microsoft YaHei', 'PingFang SC', sans-serif";
+    x.fillText(side.short || "", 26, 27);
+    x.fillStyle = "#f3e9d2";
+    x.font = "700 22px 'Microsoft YaHei', 'PingFang SC', sans-serif";
+    x.fillText(unit.def.label || unit.def.name || "单位", 61, 27);
+    x.textAlign = "right";
+    x.fillStyle = hp.routed ? "#ff9b82" : "#b8b4a4";
+    x.font = "600 16px 'Microsoft YaHei', sans-serif";
+    x.fillText(status || "待命", W - 14, 27);
+    function bar(y, v, color, label) {
+      x.fillStyle = "rgba(255,255,255,.13)";
+      roundRect(x, 44, y, W - 44, 15, 7); x.fill();
+      if (v > 0) {
+        x.fillStyle = color;
+        roundRect(x, 44, y, Math.max(2, (W - 44) * U.clamp(v, 0, 1)), 15, 7); x.fill();
+      }
+      x.fillStyle = "#b8b4a4";
+      x.font = "600 15px 'Microsoft YaHei', sans-serif";
+      x.textAlign = "left";
+      x.fillText(label, 15, y + 8);
+      x.fillStyle = "#f3e9d2";
+      x.font = "600 14px 'Microsoft YaHei', sans-serif";
+      x.textAlign = "right";
+      x.fillText(String(Math.round(v * 100)), W - 16, y + 8);
+    }
+    bar(52, hp.strength / 100, "#e07a5f", "兵");
+    bar(88, hp.morale / 100, "#8cc3b1", "气");
+    unit.texture.needsUpdate = true;
+  }
+
+  function makeBattleHealthSprite(B, unit, side) {
+    var c = document.createElement("canvas");
+    c.width = 320; c.height = 136;
+    var tex = new THREE.CanvasTexture(c);
+    var mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false });
+    var sp = new THREE.Sprite(mat);
+    sp.scale.set(6.6, 2.805, 1);
+    sp.renderOrder = 30;
+    unit.canvas = c; unit.ctx = c.getContext("2d"); unit.texture = tex;
+    var hp = battleHealth(B, unit, 0);
+    drawBattleHealth(unit, side, hp, battleStatus(unit, 0, hp));
+    return sp;
+  }
+
+  function battlePlaceUnits(B, t) {
+    B.units.forEach(function (unit) {
+      var d = unit.def;
+      var m = battleMotion(B.data, d, t);
+      var y = B.terrain ? B.terrain.heightAtXZ(m.x, m.z) : 0;
+      if (d.wall) y += 4.25;
+      unit.x = m.x; unit.z = m.z; unit.y = y; unit.retreating = m.retreat;
+      unit.formation.position.set(m.x, y, m.z);
+      unit.formation.rotation.y = Math.atan2(d.end.x - d.start.x, d.end.z - d.start.z);
+      if (unit.label) unit.label.position.set(m.x, y + 5.4 + (unit.labelOffset || 0), m.z);
+    });
+  }
+
+  function battleOwnerAt(B, x, z) {
+    var G = B.gridCfg, best = null, bestD = Infinity;
+    if (!G) return null;
+    B.units.forEach(function (u) {
+      var dx = u.x - x, dz = u.z - z;
+      var d2 = dx * dx + dz * dz;
+      if (d2 < bestD) { bestD = d2; best = u; }
+    });
+    if (best && Math.sqrt(bestD) <= G.captureRadius) return best.side.id;
+    return null;
+  }
+
+  function paintBattleGrid(B) {
+    var G = B.gridCfg, c = B.gridCanvas, g = B.gridCtx;
+    if (!G || !c) return;
+    var cw = c.width, ch = c.height;
+    g.clearRect(0, 0, cw, ch);
+    g.fillStyle = "rgba(120,130,122,.10)";
+    g.fillRect(0, 0, cw, ch);
+    var cellW = cw / G.cols, cellH = ch / G.rows;
+    var sideColors = {};
+    (B.data.sides || []).forEach(function (s) { sideColors[s.id] = new THREE.Color(s.color || "#888888"); });
+    for (var r = 0; r < G.rows; r++) {
+      var wz = G.depth / 2 - (r + 0.5) * G.depth / G.rows;
+      for (var i = 0; i < G.cols; i++) {
+        var wx = -G.width / 2 + (i + 0.5) * G.width / G.cols;
+        var owner = battleOwnerAt(B, wx, wz);
+        var col = owner ? sideColors[owner] : null;
+        g.fillStyle = col
+          ? "rgba(" + Math.round(col.r * 255) + "," + Math.round(col.g * 255) + "," + Math.round(col.b * 255) + ",0.34)"
+          : "rgba(128,138,130,.10)";
+        g.fillRect(i * cellW + 0.5, r * cellH + 0.5, cellW - 1, cellH - 1);
+        if (col) {
+          var lite = col.clone().lerp(new THREE.Color(0xfff2d0), 0.5);
+          g.strokeStyle = "rgba(" + Math.round(lite.r * 255) + "," + Math.round(lite.g * 255) + "," + Math.round(lite.b * 255) + ",0.45)";
+          g.lineWidth = 1;
+          g.strokeRect(i * cellW + 1, r * cellH + 1, cellW - 2, cellH - 2);
+        }
+      }
+    }
+    g.strokeStyle = "rgba(240,232,210,.16)";
+    g.lineWidth = 1;
+    for (var x = 0; x <= G.cols; x++) {
+      g.beginPath(); g.moveTo(x * cellW, 0); g.lineTo(x * cellW, ch); g.stroke();
+    }
+    for (var y = 0; y <= G.rows; y++) {
+      g.beginPath(); g.moveTo(0, y * cellH); g.lineTo(cw, y * cellH); g.stroke();
+    }
+    g.strokeStyle = "rgba(240,232,210,.3)";
+    g.lineWidth = 2;
+    g.strokeRect(1, 1, cw - 2, ch - 2);
+    B.gridTexture.needsUpdate = true;
+  }
+
+  function battleBuildGrid(B) {
+    var T = B.terrain;
+    var cfg = B.data.grid || {};
+    var width = T ? T.width : 92, depth = T ? T.depth : 74;
+    var cols = Math.max(8, Math.min(40, cfg.cols || 20));
+    var rows = Math.max(6, Math.min(32, cfg.rows || 16));
+    var cell = Math.min(width / cols, depth / rows);
+    B.gridCfg = {
+      cols: cols, rows: rows, width: width, depth: depth,
+      captureRadius: cfg.captureRadius == null ? cell * 2.4 : cfg.captureRadius
+    };
+    var cw = 768, ch = Math.round((cw * depth) / width);
+    var c = document.createElement("canvas"); c.width = cw; c.height = ch;
+    B.gridCanvas = c;
+    B.gridCtx = c.getContext("2d");
+    B.gridTexture = new THREE.CanvasTexture(c);
+    B.gridTexture.anisotropy = Math.min(8, S.renderer.capabilities.getMaxAnisotropy());
+    var geo;
+    if (T) {
+      geo = T.geometry.clone();
+      geo.translate(0, 0.07, 0);
+    } else {
+      geo = new THREE.PlaneGeometry(width, depth);
+      geo.rotateX(-Math.PI / 2);
+      geo.translate(0, 0.04, 0);
+    }
+    var mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+      map: B.gridTexture, transparent: true, depthWrite: false,
+      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, side: THREE.DoubleSide
+    }));
+    mesh.renderOrder = 3;
+    S.root.add(mesh);
+    B.gridMesh = mesh;
+  }
+
+  function battleRefreshHealth(B) {
+    var t = B.time / (B.data.duration || 24);
+    B.units.forEach(function (unit) {
+      var hp = battleHealth(B, unit, t);
+      drawBattleHealth(unit, unit.side, hp, battleStatus(unit, t, hp));
+    });
+  }
+
   function battleSpawnFx(B) {
     if (!S.scene) return;
     spawnClash();
@@ -1203,7 +1435,9 @@
     teardown();
     var B = {
       data: data, time: 0, speed: S.speed || 1, phaseIndex: -1,
-      units: [], unitGroup: null, terrain: null, clash: false, lastUI: -1, logSet: {}
+      units: [], unitGroup: null, labelGroup: null, terrain: null, clash: false,
+      lastUI: -1, logSet: {}, gridMesh: null, gridCfg: null, gridCanvas: null,
+      gridCtx: null, gridTexture: null, lastHealthT: 0, lastGridT: 0
     };
     S.battle = B;
     var scene = new THREE.Scene();
@@ -1278,8 +1512,11 @@
     else if (data.preset === "river") battleAddRiver(root, T);
     else if (data.preset === "ambush") battleAddRocks(root, T);
 
+    battleBuildGrid(B);
     B.unitGroup = new THREE.Group();
     root.add(B.unitGroup);
+    B.labelGroup = new THREE.Group();
+    root.add(B.labelGroup);
     var defs = data.units || battlePresetUnits(data);
     defs.forEach(function (d, i) {
       var side = battleSide(data, d.side);
@@ -1297,16 +1534,30 @@
       if (d.wall) y += 4.25;
       form.position.set(p.x, y, p.z);
       B.unitGroup.add(form);
-      var lb = makeLabelSprite(d.label || "", "#f3e9d2");
-      lb.position.set(p.x, y + 4.8, p.z);
-      lb.scale.set(4.6, 2.3, 1);
-      B.unitGroup.add(lb);
-      B.units.push({ def: d, formation: form, side: side, x: p.x, z: p.z, label: lb });
+      var sideIdx = battleSideIndex(data, d.side);
+      var unit = {
+        def: d, formation: form, side: side, x: p.x, z: p.z, y: y,
+        retreating: false, labelOffset: sideIdx === 1 && !d.wall ? 3.0 : 0,
+        label: null, canvas: null, ctx: null, texture: null
+      };
+      var hp = makeBattleHealthSprite(B, unit, side);
+      hp.position.set(p.x, y + 5.4 + unit.labelOffset, p.z);
+      hp.renderOrder = 30 + sideIdx;
+      unit.label = hp;
+      B.labelGroup.add(hp);
+      B.units.push(unit);
     });
+
+    battlePlaceUnits(B, 0);
+    paintBattleGrid(B);
+    battleRefreshHealth(B);
+    B.lastHealthT = 0;
+    B.lastGridT = 0;
 
     resize();
     applyViewOffset();
     battleUpdateUI(B, true);
+    if (HS.ui && HS.ui.buildBattleLayers) HS.ui.buildBattleLayers();
   }
 
   function battleAddWall(root, T) {
@@ -1391,24 +1642,19 @@
 
   function battleUpdate(B, dt) {
     var P = battlePhase(B), t = P.t;
+    battlePlaceUnits(B, t);
     B.units.forEach(function (unit, i) {
-      var d = unit.def;
-      var mk = U.clamp((t - (d.moveAt || 0.15)) / (d.moveDur || 0.5), 0, 1);
-      mk = U.easeInOutCubic(mk);
-      var sx = d.start.x, sz = d.start.z, ex = d.end.x, ez = d.end.z;
-      var x = U.lerp(sx, ex, mk), z = U.lerp(sz, ez, mk);
-      if (d.side === 1 && t > 0.8) {
-        var back = U.clamp((t - 0.8) / 0.2, 0, 1);
-        x = U.lerp(ex, sx, back); z = U.lerp(ez, sz, back);
-      }
-      var y = B.terrain ? B.terrain.heightAtXZ(x, z) : 0;
-      if (d.wall) y += 4.25;
-      unit.formation.position.set(x, y, z);
-      unit.formation.rotation.y = Math.atan2(ex - sx, ez - sz);
-      var state = (d.side === 1 && t > 0.8) ? "rout" : (t > 0.55 ? "fight" : (t > (d.moveAt || 0.15) ? "march" : "idle"));
+      var state = unit.retreating ? "rout" : (t > 0.55 ? "fight" : (t > (unit.def.moveAt == null ? 0.15 : unit.def.moveAt) ? "march" : "idle"));
       unit.formation.userData.update(B.time + i * 0.8, state);
-      if (unit.label) unit.label.position.set(x, y + 4.8, z);
     });
+    if (B.time < B.lastHealthT || B.time - B.lastHealthT >= 0.24) {
+      B.lastHealthT = B.time;
+      battleRefreshHealth(B);
+    }
+    if (B.time < B.lastGridT || B.time - B.lastGridT >= 0.24) {
+      B.lastGridT = B.time;
+      paintBattleGrid(B);
+    }
     if (t > 0.52 && !B.clash) { B.clash = true; battleSpawnFx(B); }
     updateFx(dt);
     if (B.phase !== P.index) {
@@ -1484,9 +1730,86 @@
     return tex;
   }
 
+  var COURT_SIDE_COLOR = { reform: "#c9a865", cautious: "#8a9b6a", neutral: "#7f8b9a", conservative: "#9a6a55" };
+
+  function courtRoleLabel(role) {
+    return role.name + (role.rank ? " · " + role.rank : "");
+  }
+
+  function makeCourtNameplate(role) {
+    var text = courtRoleLabel(role);
+    var color = role.id === "emperor" ? "#e2c06a" : (COURT_SIDE_COLOR[role.side] || "#8a9b8f");
+    var c = document.createElement("canvas");
+    c.width = 512; c.height = 128;
+    var x = c.getContext("2d");
+    x.font = "700 30px 'Microsoft YaHei', 'PingFang SC', sans-serif";
+    var w = Math.min(492, Math.max(260, x.measureText(text).width + 92));
+    var left = (512 - w) / 2;
+    x.clearRect(0, 0, 512, 128);
+    x.fillStyle = "rgba(4,10,8,.92)";
+    roundRect(x, left, 20, w, 88, 18); x.fill();
+    x.strokeStyle = color;
+    x.lineWidth = 3;
+    if (role.roleOnly) x.setLineDash([8, 5]);
+    roundRect(x, left, 20, w, 88, 18); x.stroke();
+    x.setLineDash([]);
+    x.fillStyle = color;
+    roundRect(x, left + 18, 46, 8, 36, 4); x.fill();
+    x.fillStyle = "#f6edd8";
+    x.font = "700 30px 'Microsoft YaHei', 'PingFang SC', sans-serif";
+    x.textAlign = "left";
+    x.textBaseline = "middle";
+    x.fillText(text, left + 38, 65);
+    var tex = new THREE.CanvasTexture(c);
+    tex.anisotropy = Math.min(8, S.renderer.capabilities.getMaxAnisotropy());
+    var mat = new THREE.SpriteMaterial({
+      map: tex, transparent: true, depthTest: false, depthWrite: false, opacity: 0.32
+    });
+    var sp = new THREE.Sprite(mat);
+    sp.renderOrder = 16;
+    return { sprite: sp, worldW: 8.8, worldH: 2.2 };
+  }
+
+  function attachCourtNameplate(entry) {
+    var np = makeCourtNameplate(entry.role);
+    var s = entry.group.scale.x || 1;
+    entry.nameplate = np.sprite;
+    entry.npBaseW = np.worldW / s;
+    entry.npBaseH = np.worldH / s;
+    entry.nameplate.scale.set(entry.npBaseW, entry.npBaseH, 1);
+    entry.nameplate.position.set(0, entry.role.id === "emperor" ? 2.45 : 2.24, 0);
+    entry.group.add(entry.nameplate);
+  }
+
+  function courtFocus(C, ph) {
+    C.roleList.forEach(function (r) {
+      var active = !!(ph && r.role.id === ph.speaker);
+      var mat = r.nameplate.material;
+      mat.opacity = active ? 1 : 0.28;
+      mat.color.setHex(active ? 0xffffff : 0x7f8983);
+      var k = active ? 1.08 : 0.88;
+      r.nameplate.scale.set(r.npBaseW * k, r.npBaseH * k, 1);
+      r.nameplate.renderOrder = active ? 26 : 16;
+    });
+    var sp = ph && C.roles[ph.speaker];
+    if (sp && sp.group && C.halo) {
+      if (sp.role.id === "emperor") {
+        C.halo.position.set(sp.group.position.x, 1.12, sp.group.position.z + 1.5);
+        C.haloBase = 1.5;
+      } else {
+        C.halo.position.set(sp.group.position.x, sp.group.position.y + 0.05, sp.group.position.z);
+        C.haloBase = 1;
+      }
+      C.halo.scale.setScalar(C.haloBase);
+      C.halo.visible = true;
+    } else if (C.halo) {
+      C.halo.visible = false;
+    }
+  }
+
   function courtBuild(data) {
     teardown();
-    var C = { data: data, time: 0, speed: S.speed || 1, phaseIndex: -1, roles: {}, roleList: [], flames: [], lights: [], lastUI: -1 };
+    var C = { data: data, time: 0, speed: S.speed || 1, phaseIndex: -1, roles: {}, roleList: [], flames: [], lights: [], lastUI: -1, halo: null };
     S.court = C;
     var scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0b0d0b);
@@ -1573,8 +1896,9 @@
     emp.rotation.y = 0;
     emp.scale.setScalar(1.3);
     root.add(emp);
-    C.roles.emperor = { role: (data.roles || []).filter(function (r) { return r.id === "emperor"; })[0] || { id: "emperor", name: "皇帝", rank: "" }, group: emp, pose: "seat" };
+    C.roles.emperor = { role: (data.roles || []).filter(function (r) { return r.id === "emperor"; })[0] || { id: "emperor", name: "皇帝", rank: "" }, group: emp, pose: "seat", baseY: 1.25 };
     C.roleList.push(C.roles.emperor);
+    attachCourtNameplate(C.roles.emperor);
 
     var colors = ["#3d5a50", "#5a4a36", "#4a3b58", "#36545a", "#5a3a3a"];
     var slots = [
@@ -1589,8 +1913,9 @@
       g.rotation.y = Math.PI;
       g.scale.setScalar(1.22);
       root.add(g);
-      C.roles[r.id] = { role: r, group: g, pose: "listen" };
+      C.roles[r.id] = { role: r, group: g, pose: "listen", baseY: 0 };
       C.roleList.push(C.roles[r.id]);
+      attachCourtNameplate(C.roles[r.id]);
     });
 
     // 侍卫
@@ -1601,6 +1926,18 @@
       gd.scale.setScalar(1.15);
       root.add(gd);
     });
+
+    var halo = new THREE.Mesh(new THREE.RingGeometry(0.55, 0.84, 48),
+      new THREE.MeshBasicMaterial({
+        color: 0xe8c46a, transparent: true, opacity: 0.7, side: THREE.DoubleSide,
+        depthWrite: false, blending: THREE.AdditiveBlending
+      }));
+    halo.rotation.x = -Math.PI / 2;
+    halo.position.y = 0.045;
+    halo.visible = false;
+    halo.renderOrder = 4;
+    root.add(halo);
+    C.halo = halo;
 
     // 烛台
     [[-9, -2], [9, -2], [-9, 4.5], [9, 4.5]].forEach(function (p, idx) {
@@ -1619,12 +1956,15 @@
       }
     });
 
+    var first = (data.phases || [])[0];
+    if (first) courtApplyPhase(C, first, 0, true);
+
     resize();
     applyViewOffset();
     courtUpdateUI(C, true);
   }
 
-  function courtApplyPhase(C, ph, pi) {
+  function courtApplyPhase(C, ph, pi, silent) {
     if (!ph) return;
     C.roleList.forEach(function (r) {
       var pose = "listen";
@@ -1635,11 +1975,17 @@
       r.pose = pose;
       if (r.group.userData.setPose) r.group.userData.setPose(pose);
     });
+    courtFocus(C, ph);
     var sp = C.roles[ph.speaker];
-    if (HS.ui && HS.ui.setCourtSpeaker) {
-      HS.ui.setCourtSpeaker(sp ? sp.role.name + (sp.role.rank ? " · " + sp.role.rank : "") : "朝堂", ph.log || "");
+    var text = ph.log || "";
+    if (sp) {
+      var prefix = sp.role.name + "：";
+      if (text.indexOf(prefix) === 0) text = text.slice(prefix.length);
     }
-    if (ph.log && HS.ui && HS.ui.appendWarLog) HS.ui.appendWarLog(ph.log, "phase", pi);
+    if (HS.ui && HS.ui.setCourtSpeaker) {
+      HS.ui.setCourtSpeaker(sp ? courtRoleLabel(sp.role) : "朝堂", text);
+    }
+    if (!silent && ph.log && HS.ui && HS.ui.appendWarLog) HS.ui.appendWarLog(ph.log, "phase", pi);
   }
 
   function courtStep(C, dt) {
@@ -1662,6 +2008,7 @@
     var t = C.time / (C.data.duration || 26);
     C.roleList.forEach(function (r) {
       if (r.group.userData.update) r.group.userData.update(C.time, r.pose);
+      r.group.position.y += r.baseY || 0;
     });
     C.flames.forEach(function (f, i) {
       var s = 0.85 + Math.sin(C.time * 7 + i * 1.7) * 0.15;
@@ -1669,6 +2016,11 @@
       f.material.opacity = 0.8 + Math.sin(C.time * 6 + i) * 0.15;
     });
     C.lights.forEach(function (l, i) { l.intensity = 0.48 + Math.sin(C.time * 5 + i * 2) * 0.08; });
+    if (C.halo && C.halo.visible) {
+      var pulse = (C.haloBase || 1) * (1 + Math.sin(C.time * 3.2) * 0.08);
+      C.halo.scale.set(pulse, pulse, pulse);
+      C.halo.material.opacity = 0.6 + Math.sin(C.time * 3.2) * 0.2;
+    }
     var ph = null, pi = -1;
     (C.data.phases || []).forEach(function (p, i) { if (t >= p.at) { ph = p; pi = i; } });
     if (HS.ui && HS.ui.setWarPhase) HS.ui.setWarPhase(ph, t, pi, C.data.phases);
@@ -1931,7 +2283,10 @@
 
   S.setWarLayer = function (name, on) {
     if (S.data && S.data.type === "battle" && S.battle) {
-      if (name === "units" && S.battle.unitGroup) S.battle.unitGroup.visible = !!on;
+      var b = S.battle;
+      if (name === "units" && b.unitGroup) b.unitGroup.visible = !!on;
+      else if (name === "labels" && b.labelGroup) b.labelGroup.visible = !!on;
+      else if (name === "grid" && b.gridMesh) b.gridMesh.visible = !!on;
       if (HS.ui && HS.ui.setWarLayerBox) HS.ui.setWarLayerBox(name, on);
       return;
     }
@@ -1969,21 +2324,45 @@
       return { active: S.active, playing: vs.auto, type: "vr", t: 0, eventId: S.event ? S.event.id : "", speed: vs.speed };
     }
     if (S.data && S.data.type === "battle" && S.battle) {
-      var PB = battlePhase(S.battle);
+      var PB = battlePhase(S.battle), b = S.battle;
       return {
         active: S.active, playing: S.playing, type: "battle", t: PB.t,
         eventId: S.event ? S.event.id : "", phase: PB.phase ? PB.phase.label : "", phaseIndex: PB.index,
-        progress: PB.t, speed: S.speed
+        progress: PB.t, speed: S.speed,
+        grid: b.gridMesh ? {
+          cols: b.gridCfg.cols, rows: b.gridCfg.rows,
+          captureRadius: b.gridCfg.captureRadius, visible: b.gridMesh.visible
+        } : null,
+        unitsVisible: !!(b.unitGroup && b.unitGroup.visible),
+        labelsVisible: !!(b.labelGroup && b.labelGroup.visible),
+        units: b.units.map(function (u) {
+          var hp = battleHealth(b, u, PB.t);
+          return {
+            label: u.def.label, side: u.side.id,
+            strength: Math.round(hp.strength), morale: Math.round(hp.morale),
+            routed: hp.routed
+          };
+        })
       };
     }
     if (S.data && S.data.type === "court" && S.court) {
       var C = S.court, ct = C.time / (S.data.duration || 26);
       var cph = null, cpi = -1;
       (S.data.phases || []).forEach(function (p, i) { if (ct >= p.at) { cph = p; cpi = i; } });
+      var sp = cph && C.roles[cph.speaker];
       return {
         active: S.active, playing: S.playing, type: "court", t: ct,
         eventId: S.event ? S.event.id : "", phase: cph ? cph.label : "", phaseIndex: cpi,
-        progress: ct, speed: S.speed
+        progress: ct, speed: S.speed,
+        speaker: cph ? cph.speaker : "", speakerLabel: sp ? courtRoleLabel(sp.role) : "",
+        halo: !!(C.halo && C.halo.visible),
+        roles: C.roleList.map(function (r) {
+          return {
+            id: r.role.id, name: r.role.name, rank: r.role.rank || "",
+            label: courtRoleLabel(r.role), active: !!(cph && r.role.id === cph.speaker),
+            nameplateOpacity: r.nameplate ? r.nameplate.material.opacity : 0
+          };
+        })
       };
     }
     if (S.data && S.data.type === "war" && S.war) {

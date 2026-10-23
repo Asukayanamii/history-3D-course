@@ -6,6 +6,23 @@
 
 ---
 
+## 0. v0.5 增量（2026-10-23）
+
+- `battle` 增加血条头标与占地网格；`e06 war` 的省域兵棋保持不变，不叠加第二套网格。
+- `battle.grid`（可选）：`{ cols: 20, rows: 16, captureRadius: 11 }`。
+  - `cols/rows` 默认 20×16；`captureRadius` 为场景世界单位，缺省约为单元格短边的 2.4 倍。
+  - 网格使用与战场 DEM 同几何的 Canvas 覆盖纹理，不是平面 `GridHelper`；随单位位置每 0.24 秒重绘。
+  - 单元格按“最近单位 + 捕获半径”归属；超出半径为中立灰；颜色取 `sides[].color`。
+- `battle` 单位可带 `strength` / `morale`（0–100，缺省 100）。头标显示阵营短名、单位名、状态与兵/气两条；`strength <= 20` 或 `morale <= 25` 视为溃退。
+  - 损耗模型是场景时间的确定性函数，不使用 `Math.random()`；`restart` / `goToPhase` / `setTime` 重建后按同一时间点复位。
+- `battle` 图层名为 `grid` / `units` / `labels`（界面文案：占地网格 / 单位 / 名字）；`S.setWarLayer` 与 `HS.ui.setWarLayerBox` 同步。
+- `court` 角色增加可选 `roleOnly: true`；发言阶段在 3D 小人上方显示 `name · rank` 名牌，发言者高亮并出现金色光环，非发言者弱化；右侧「发言」栏使用同一 `name · rank`。
+  - 名牌文本由 `name + " · " + rank` 生成；不确定的历史人物只写角色并标“角色/待核订”，不得编造。
+  - 皇帝为坐姿，光环放在御座前平台；文官光环在脚下。
+- 诚实性口径：占地网格、兵/气条、阵型均为战术示意，不是精确历史阵图；朝堂台词为教学情景复原。
+
+---
+
 ## 1. 公共字段
 
 ```js
@@ -71,6 +88,7 @@ scene: {
 battle: {
   preset: "field" | "siege" | "cavalry" | "ambush" | "river",
   terrain: "hebei" | "guanzhong" | "huainan" | "gaoping",
+  grid: { cols: 20, rows: 16, captureRadius: 11 },   // 可选
   sides: [{ id, name, color, short }]
 }
 ```
@@ -100,7 +118,9 @@ scene: {
     count, label,
     start: { x, z }, end: { x, z },
     moveAt: 0.15, moveDur: 0.58,
-    wall: true               // 守军站在城墙上
+    wall: true,              // 守军站在城墙上
+    strength: 100,           // 可选，0–100，缺省 100
+    morale: 100              // 可选，0–100，缺省 100
   }],
   phases: [...]
 }
@@ -108,7 +128,9 @@ scene: {
 
 - 所有 `kind:"war"` 事件必须有显式 `scene` 或 `battle` 快捷配置。
 - 场景内单位是低多边形小人；守城单位可站在城墙顶。
-- 通用战场明确标注“地形真实；兵力/阵型为教学示意”。
+- 通用战场明确标注“地形真实；兵力/阵型/占地网格为教学示意”。
+- 每个单位有 CanvasTexture 头标（阵营短名 + 单位名 + 状态 + 兵/气），溃退方在收束阶段跌破阈值。
+- 占地网格是战场 DEM 上的 Canvas 覆盖层；中立格灰色，控制格取阵营色；每 0.24 秒按单位位置重绘。
 
 ---
 
@@ -121,7 +143,7 @@ scene: {
   duration: 26,
   camera: { dist: 34, az: 0, polar: 70 },
   roles: [
-    { id, name, rank, side, pose: "seat"|"speak"|"listen" }
+    { id, name, rank, side, pose: "seat"|"speak"|"listen", roleOnly: false }
   ],
   phases: [
     { at, speaker: "emperor", label, log, gesture: "raise"|"bow"|"point"|"spread"|"seat" }
@@ -132,7 +154,9 @@ scene: {
 
 - 角色 `id:"emperor"` 自动放在御座；`id:"guard"` 自动生成侍卫；其余为文官。
 - `gesture:"raise"` 映射为举笏发言；`"bow"` 为躬身；`"seat"` 为落座/聆听。
-- UI 显示“发言”栏、阶段时间轴、战报；明确“情景复原，不是史料原文”。
+- 每个有名字的角色在 3D 小人上方生成 `name · rank` CanvasTexture 名牌；发言者名牌高亮放大、脚下/御座前出现金色光环，非发言者名牌弱化。
+- `roleOnly: true` 表示角色化呈现、具体姓名待核订；名牌描边为虚线，界面文案保留“角色/待核订”。
+- UI 显示“发言”栏、阶段时间轴、战报；右侧发言使用与 3D 名牌相同的 `name · rank`。明确“情景复原，不是史料原文”。
 
 ---
 
@@ -205,7 +229,9 @@ HS.dem.buildMesh({
 1. 所有 war 事件 `HS.sceneFor` 非空；e11 为 `court`。
 2. e06 war 终局 7/1/1；同 seed 一致。
 3. 场景内单位是小人，不是方块；行军/接战/溃退可见。
-4. 朝堂有皇帝、文官、侍卫；阶段发言者变化。
-5. 地形/省份/战线/标签贴地；不埋入山体。
-6. 360° 水平循环、热点、自动巡游、`Esc`/`V` 返回。
-7. 无 console error；反复进出 war/battle/court/vr 各 3 次不崩。
+4. 所有 `battle` 预设（field/siege/cavalry/ambush/river）都有兵/气头标与占地网格；阶段推进时数值和格子控制变化；图层 `grid/units/labels` 可开关。
+5. e06 `war` 终局仍为后周 7 省、北汉/辽各 1 省；不出现第二套网格或 battle 头标。
+6. 朝堂有皇帝、文官、侍卫；每个发言阶段 3D 名牌与右侧“发言”的姓名/官职一致；非发言者弱化、发言者有金色光环。
+7. 地形/省份/战线/标签贴地；不埋入山体。
+8. 360° 水平循环、热点、自动巡游、`Esc`/`V` 返回。
+9. 无 console error；反复进出 war/battle/court/vr 各 3 次不崩。

@@ -515,7 +515,7 @@ window.HISTORY_THEMES.wudai = {
         "命臣僚编定《大周刑统》，统一法律；疏浚汴河等漕运，恢复开封的交通与经济。",
         "改革增强了后周国力，为北宋统一南方与结束分裂局面准备了条件。"
       ],
-      figures: ["柴荣（后周世宗）", "王溥", "范质", "赵匡胤（禁军将领）"],
+      figures: ["柴荣（后周世宗）", "王溥（宰相）", "范质（宰相）", "李谷（大臣）", "赵匡胤（禁军将领）", "御史（台官·角色）"],
       result: "后周军政、财政、法律与漕运得到整顿，国力增强。",
       impact: "为北宋统一奠定制度与军事基础；限制佛教等措施也有社会代价，需并陈。",
       ask: { q: "世宗改革包括哪些方面？为什么说它为北宋统一奠定了基础？", a: "包括整顿禁军、均定田赋、整顿吏治、限制佛教与铸钱、编定刑统、疏浚漕运等；这些措施增强了后周的财政与军力，也为北宋承接制度与统一条件打下基础。" },
@@ -529,7 +529,7 @@ window.HISTORY_THEMES.wudai = {
         { title: "资治通鉴", author: "司马光", publisher: "中华书局", year: "1956", locator: "显德二年至六年条", url: "", accessed: "2026-10-23", confidence: "high", note: "编年叙事；只标年份条目。" }
       ],
       status: "sourced",
-      reviewNote: "待耿雨审核：均定田赋、限佛/废寺、刑统、整顿禁军的表述与评价；朝堂人物称谓与台词为情景复原。",
+      reviewNote: "待耿雨审核：均定田赋、限佛/废寺、刑统、整顿禁军的表述与评价；朝堂人物姓名、官职与台词为情景复原，御史为角色化呈现、具体姓名待核订。",
       vr: {
         pano: "assets/vr/wudai/e11.jpg",
         hotspots: [
@@ -543,29 +543,32 @@ window.HISTORY_THEMES.wudai = {
         variant: "court",
         title: "世宗改革 · 朝堂议政",
         subtitle: "955 年起 · 后周 · 汴州",
-        note: "人物称谓、台词与场景为教学情景复原，不是史料原文；改革措施以教材与正史概括为准。",
+        note: "人物称谓、台词与场景为教学情景复原，不是史料原文；御史为角色化呈现，具体姓名待核订；改革措施以教材与正史概括为准。",
         duration: 26,
         camera: { dist: 34, az: 0, polar: 70 },
         roles: [
           { id: "emperor", name: "柴荣", rank: "后周世宗", side: "reform", pose: "seat" },
-          { id: "chancellor", name: "宰相", rank: "中书", side: "reform", pose: "listen" },
-          { id: "finance", name: "户部官员", rank: "三司", side: "cautious", pose: "listen" },
-          { id: "censor", name: "御史", rank: "御史台", side: "reform", pose: "listen" },
-          { id: "general", name: "禁军将领", rank: "殿前", side: "reform", pose: "listen" },
-          { id: "guard", name: "侍卫", rank: "宿卫", side: "neutral", pose: "guard" }
+          { id: "chancellor", name: "王溥", rank: "宰相", side: "reform", pose: "listen" },
+          { id: "finance", name: "范质", rank: "宰相", side: "cautious", pose: "listen" },
+          { id: "censor", name: "李谷", rank: "大臣", side: "reform", pose: "listen" },
+          { id: "general", name: "赵匡胤", rank: "禁军将领", side: "reform", pose: "listen" },
+          { id: "inspector", name: "御史", rank: "台官（角色待核订）", side: "neutral", pose: "listen", roleOnly: true },
+          { id: "guard", name: "侍卫", rank: "宿卫", side: "neutral", pose: "guard", roleOnly: true }
         ],
         phases: [
           { at: 0.00, speaker: "emperor", label: "高平之后", log: "柴荣：高平一战，禁军老弱与临阵脱逃之弊，必须整顿。", gesture: "raise" },
-          { at: 0.18, speaker: "general", label: "整顿禁军", log: "禁军将领：请裁汰老弱，选练精锐，统一号令。", gesture: "point" },
-          { at: 0.40, speaker: "finance", label: "均定田赋", log: "户部官员：均田赋可纾民困，但州县隐户未清，须先核田。", gesture: "spread" },
-          { at: 0.60, speaker: "censor", label: "惩贪与法制", log: "御史：贪吏不惩，诏令难行；请颁统一刑统。", gesture: "raise" },
-          { at: 0.78, speaker: "emperor", label: "限佛铸钱", log: "柴荣：限佛、毁佛铸钱以济国用；此事有社会代价，须慎行。", gesture: "raise" },
-          { at: 0.92, speaker: "emperor", label: "改革收束", log: "改革增强后周国力，为统一准备条件；评价应并陈收益与代价。", gesture: "seat" }
+          { at: 0.14, speaker: "general", label: "整顿禁军", log: "赵匡胤：请裁汰老弱，选练精锐，统一号令。", gesture: "point" },
+          { at: 0.30, speaker: "chancellor", label: "宰相总纲", log: "王溥：军政之外，均定田赋、整顿吏治，宜次第推行。", gesture: "raise" },
+          { at: 0.46, speaker: "finance", label: "均定田赋", log: "范质：均田赋可纾民困，但州县隐户未清，须先核田。", gesture: "spread" },
+          { at: 0.62, speaker: "censor", label: "惩贪与法制", log: "李谷：贪吏不惩，诏令难行；请颁统一刑统。", gesture: "raise" },
+          { at: 0.74, speaker: "inspector", label: "台谏监察", log: "御史：台谏当纠劾贪吏、复核州县账籍；此为角色化发言。", gesture: "point" },
+          { at: 0.86, speaker: "emperor", label: "限佛铸钱", log: "柴荣：限佛、毁佛铸钱以济国用；此事有社会代价，须慎行。", gesture: "raise" },
+          { at: 0.94, speaker: "emperor", label: "改革收束", log: "改革增强后周国力，为统一准备条件；评价应并陈收益与代价。", gesture: "seat" }
         ],
         text: {
           time: "955 年起（显德年间）",
           place: "汴州（今河南开封）",
-          figures: ["柴荣（后周世宗）", "宰相", "户部官员", "御史", "禁军将领"],
+          figures: ["柴荣（后周世宗）", "王溥（宰相）", "范质（宰相）", "李谷（大臣）", "赵匡胤（禁军将领）", "御史（台官·角色）"],
           result: "后周军政、财政、法律与漕运得到整顿，国力增强。",
           impact: "为北宋统一奠定制度与军事基础；限制佛教等措施也有社会代价，需并陈。"
         }

@@ -484,6 +484,7 @@ code, .mono { font-family: Consolas, "SFMono-Regular", Menlo, monospace; font-si
 #sceneLegend { display: flex; flex-wrap: wrap; gap: 7px 14px; }
 #sceneLegend .unit { display: inline-flex; align-items: center; gap: 7px; font: 13px var(--f-ui); color: var(--paper-dim); }
 #sceneLegend .unit i { width: 18px; height: 4px; border-radius: 2px; background: var(--c); box-shadow: 0 0 7px var(--c); }
+#sceneLegend .war-legend-note { flex-basis: 100%; margin: 1px 0 0; font: 11.5px/1.5 var(--f-ui); color: var(--muted); }
 .scene-note { margin-top: 14px; padding-top: 11px; border-top: 1px solid var(--hair);
   font: 12px/1.6 var(--f-ui); color: var(--muted); }
 

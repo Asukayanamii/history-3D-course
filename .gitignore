@@ -13,3 +13,5 @@ coverage
 tools/.dem-cache/
 tools/.build-dem.log
 tools/.qa-*.png
+.commandcode/
+tmp/

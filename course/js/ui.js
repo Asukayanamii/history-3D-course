@@ -311,6 +311,11 @@
     $("warRestart").hidden = false;
     $("warLogWrap").hidden = false;
     $("warLayersWrap").hidden = false;
+    var panel = $("scenePanel");
+    if (panel) {
+      panel.appendChild($("warLogWrap"));
+      panel.appendChild($("warLayersWrap"));
+    }
     $("warLog").innerHTML = "";
     var legend = $("sceneLegend");
     legend.innerHTML = "";
@@ -356,8 +361,10 @@
 
   ui.openBattleScene = function (data, ev) {
     ui.openScene(data, ev);
-    ["warSides", "warLayersWrap", "courtSpeakerWrap"].forEach(function (id) { var e = $(id); if (e) e.hidden = true; });
-    ["warTimeline", "warSpeed", "warRestart", "warLogWrap"].forEach(function (id) { var e = $(id); if (e) e.hidden = false; });
+    ["warSides", "courtSpeakerWrap"].forEach(function (id) { var e = $(id); if (e) e.hidden = true; });
+    ["warTimeline", "warSpeed", "warRestart", "warLogWrap", "warLayersWrap"].forEach(function (id) { var e = $(id); if (e) e.hidden = false; });
+    var panel = $("scenePanel");
+    if (panel && $("warLogWrap") && $("warLayersWrap")) panel.insertBefore($("warLayersWrap"), $("warLogWrap"));
     ui.setSceneVrAvailable(!!(ev && ev.image));
     ui.setSceneKicker("战场情景 · 真实地形");
     $("warLog").innerHTML = "";
@@ -366,7 +373,9 @@
     (data.sides || []).forEach(function (s) {
       legend.appendChild(U.el("span", "unit", "<i style='--c:" + U.esc(s.color || "#888") + "'></i>" + U.esc(s.name)));
     });
+    legend.appendChild(U.el("p", "war-legend-note", "占地网格、兵/气条为战术示意，不是精确历史疆域或阵图。"));
     buildPhaseStrip(data);
+    ui.buildBattleLayers();
     ui.setWarSpeed(1);
     ui.setScenePlaying(true);
     ui.setWarPhase(null, 0, -1, ui.warPhases);
@@ -480,6 +489,20 @@
     [
       ["front", "战线"], ["routes", "路线"], ["units", "单位"],
       ["battles", "战斗"], ["labels", "地名"], ["territory", "领土"]
+    ].forEach(function (pair) {
+      var lab = U.el("label", "", "<input type='checkbox' data-war-layer='" + pair[0] + "' checked><span>" + pair[1] + "</span>");
+      lab.querySelector("input").addEventListener("change", function (e) {
+        fire("war-layer", { name: pair[0], on: e.target.checked });
+      });
+      box.appendChild(lab);
+    });
+  };
+  ui.buildBattleLayers = function () {
+    var box = $("warLayersBody");
+    if (!box) return;
+    box.innerHTML = "";
+    [
+      ["grid", "占地网格"], ["units", "单位"], ["labels", "名字"]
     ].forEach(function (pair) {
       var lab = U.el("label", "", "<input type='checkbox' data-war-layer='" + pair[0] + "' checked><span>" + pair[1] + "</span>");
       lab.querySelector("input").addEventListener("change", function (e) {

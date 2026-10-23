@@ -1,6 +1,8 @@
 # DEMO 交接 · 史境三维历史沙盘 v0.3
 
-> **v0.4 增量（2026-10-23）**：真实 DEM 地形、所有战争事件 `battle`、e11 `court`、360° `vr`、地图微缩情景已落地。最新状态以 `docs/需求修订_v0.4.md`、`docs/handoff/SCENE_SPEC_v0.4.md`、`docs/handoff/DEM_SOURCES.md` 和 `course/README.md` 为准；本文件 v0.3 段落保留作历史记录。
+> **v0.5 增量（2026-10-23）**：`battle` 血条头标、占地网格与图层开关、e11 朝堂历史人物名牌/金色光环已落地；e06 `war` 保持不变。最新状态以 `docs/需求修订_v0.5.md`、`docs/handoff/SCENE_SPEC_v0.4.md`（第 0 节）、`docs/handoff/QA.md` 和 `course/README.md` 为准。
+>
+> **v0.4 增量（2026-10-23）**：真实 DEM 地形、所有战争事件 `battle`、e11 `court`、360° `vr`、地图微缩情景已落地。本文件 v0.3 段落保留作历史记录。
 
 ## v0.4 状态速览
 
