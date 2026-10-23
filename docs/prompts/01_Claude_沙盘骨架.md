@@ -298,7 +298,7 @@ docs/handoff/
 - `L`：图层面板
 - `M`：静音/恢复
 - `F`：全屏
-- `1` / `2` / `3`：切换五代十国/隋唐/宋朝
+- `1` / `2` / `3`：切换隋唐/五代十国/宋朝（按起始时间；默认五代十国）
 - `Esc`：关闭弹窗/卡片/退出全屏
 - 所有快捷键要 `preventDefault`，避免页面滚动；输入框聚焦时不触发（本 Demo 没有输入框，但保留判断）。
 
@@ -336,19 +336,23 @@ docs/handoff/
 window.__sandbox = window.HISTORY_APP;
 ```
 
-至少支持：`switchTheme`、`goTo`、`next`、`prev`、`play`、`pause`、`goHome`、`state`、`screenOf`、`isFlying`、`enterScene`、`exitScene`、`toggleScene`。这些钩子用于自测和后续录屏，不影响正常用户。
+至少支持：`switchTheme`、`goTo`、`next`、`prev`、`play`、`pause`、`goHome`、`state`、`screenOf`、`isFlying`、`enterScene`、`exitScene`、`toggleScene`、`setSceneSpeed`、`restartScene`、`goToScenePhase`。这些钩子用于自测和后续录屏，不影响正常用户。
 
-### 4.11 3D 全知场景（v0.2，至少 1 个）
+### 4.11 战争场景（v0.3，`war` 兵棋推演，至少 1 个）
 
 - 用独立的 `js/scene.js` + `#sceneCanvas` + 独立 `WebGLRenderer`，不要干扰主沙盘。
-- 当前只实现 `scene.type: "battlefield"`；`court/architecture` 返回 false，不要假装已实现。
+- 当前实现 `scene.type: "war"`；`battlefield` 保留兼容；`court/architecture` 返回 false，不要假装已实现。
 - 触发：卡片「进入场景」（`ev.scene` 存在才启用）或 `E`；退出：`Esc`/返回按钮；场景内 `Space` 暂停/继续。
-- 场景内容：
-  - 低多边形地面/山脊/军阵/旗帜；全部程序化几何体 + Canvas 纹理，不加载图片。
-  - `units` 的 `start/moveTo/retreatTo` 是场景局部坐标，不是经纬度；按 `moveAt/moveDur/retreatAt/retreatDur` 插值。
-  - 战况阶段 `phases` + 进度条；镜头可旋转/缩放；默认缓慢自动旋转，用户操作后停止。
-  - 右侧面板显示时间、地点、主要人物、结果、影响；明确「低多边形艺术复原，不是历史影像」。
-- 场景数据契约见 `00_协作总览与数据契约.md` 5.4。
+- **自动推演，不是玩家下令**：
+  - 省份地图（8–10 个，带 polygon/owner/terrain/neighbors）。
+  - 单位有 `strength/morale/attack/defense/speed` 和脚本 `orders`；按固定 `tick` 推进。
+  - 战斗自动结算：伤害损耗 strength、士气下降、低于阈值溃退；省份 control/owner 改变。
+  - 战线由 `borders` + `owner` 运行时派生：只有相邻且归属不同的边界段显示；**不要写 `front.keyframes`**。
+  - `phases[].effects` 只做 morale/attack 修正，不直接改战线。
+  - 固定 `seed`；同一 seed 同一数据结果一致；`goToPhase` 重置 + 固定步长快进。
+- UI：左侧双方兵力/控制、右侧阶段/战报、底部阶段时间轴、顶部 1x/2x/4x + 重播；单位/省份悬浮提示；图层开关（战线/路线/单位/战斗/地名/领土）。
+- 键盘：场景内 `Space` 暂停、`1/2/3` 速度 1x/2x/4x、`R` 重播、`L` 图层、`Esc` 返回；地图模式下 `1/2/3` 按新时间顺序切时期。
+- 场景数据契约见 `00_协作总览与数据契约.md` 5.4，完整规范见 `docs/handoff/WAR_SCENE_SPEC.md`。
 - 本轮只做 `wudai/e06 高平之战`；其他事件没有 `scene`，显示「进入场景（待补）」。
 
 ## 五、数据文件
@@ -439,7 +443,7 @@ window.__sandbox = window.HISTORY_APP;
 7. 时间轴点击跳转；当前事件高亮。
 8. `P` 自动演示；`?demo=1` 可用；`?dwell=8000` 生效。
 9. `L` 图层开关；`M` 静音；`F` 全屏。
-10. `1/2/3` 切换主题；切换 5 次后无明显卡顿/内存异常。
+10. `1/2/3` 按时间顺序切换时期（隋唐/五代十国/宋朝）；顶栏/首屏顺序一致；切换 5 次后无明显卡顿/内存异常。
 11. 1920×1080 和 1366×768 下无溢出；窗口缩小不崩。
 12. 首屏 3 秒内可交互；`course/` < 50MB。
 13. 来源与授权弹窗列出外部网站/地图参考和事件史料；主页/页脚有统一 AI 声明；不要求逐图 AI 角标或卡片逐条标来源。

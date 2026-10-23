@@ -18,21 +18,36 @@
 | 旋转 / 缩放 / 平移 | 左键拖动 / 滚轮 / 右键拖动 |
 | 回到全景 | `Home` 或顶栏「全景」 |
 | 课堂提问 | `Q` 出题，再按 `Q` 揭晓；`Esc` 关闭 |
-| 进入 / 退出 3D 场景 | `E`，或卡片上的「进入场景」；场景内 `Esc` 返回 |
+| 进入 / 退出战争场景 | `E`，或卡片上的「进入场景」；场景内 `Esc` 返回 |
 | 场景暂停 / 继续 | 场景内 `Space` |
+| 场景速度 | 场景内 `1` 1x / `2` 2x / `3` 4x；也可点顶栏速度按钮 |
+| 场景重播 | 场景内 `R`，或顶栏「重播」 |
+| 场景图层 | 场景内 `L`，或右侧「图层」 |
 | 自动演示 | `P` 开/关；`?demo=1` 自动播放 |
-| 图层 | `L` |
+| 图层 | `L`（地图模式） |
 | 静音 / 恢复 | `M` |
 | 全屏 | `F` |
-| 切换时期 | `1` 五代十国 / `2` 隋唐 / `3` 宋朝 |
+| 切换时期 | `1` 隋唐 / `2` 五代十国 / `3` 宋朝 |
 
 ## 三个时期
 
 | 时期 | 事件数 | 说明 |
 |---|---|---|
-| 五代十国 | 10 | 默认、重点；3 条路线；高平之战有全知视角 3D 场景 |
+| 五代十国 | 10 | 默认、重点；3 条路线；高平之战有兵棋推演场景 |
 | 隋唐（安史之乱） | 6 | 薄主题，证明同一引擎可切换 |
 | 宋朝（澶渊之盟） | 4 | 薄主题，证明同一引擎可切换 |
+
+## 高平之战 · 兵棋推演
+
+`e06` 的「进入场景」打开一个自动推演的省域战场：
+
+- 9 个省份：太原、代州、潞州、沁水、高平、壶关、端氏、泽州、陵川。
+- 单位有相对 `strength` / `morale` / `attack` / `defense` / `speed`；接战自动结算，低于阈值溃退。
+- **战线是推演结果**：相邻省份归属不同时，取共享边界段自动生成；不是手工画的关键帧。
+- 右侧战报 + 底部阶段时间轴；可暂停、调速、重播、跳阶段、开关图层。
+- 场景明确标注「战术示意，不是精确历史阵图」；兵力/省份/战线均为示意。
+
+操作：`Space` 暂停；`1/2/3` 速度 1x/2x/4x；`R` 重播；`L` 图层；`Esc` 返回地图。
 
 ## 修改内容
 
@@ -56,12 +71,19 @@
   result: "后周军获胜，北汉退守太原。",
   impact: "柴荣树立权威，整顿禁军，为后周改革与北伐奠定基础。",
   scene: {
-    type: "battlefield",
-    title: "高平之战 · 全知视角",
-    text: { time, place, figures, result, impact },
+    type: "war",
+    title: "高平之战 · 兵棋推演",
+    duration, tick, seed,
     camera: { dist, az, polar },
-    phases: [{ at, label }],
-    units: [{ id, name, color, count, formation, start, moveTo, moveAt, moveDur, retreatTo, retreatAt, retreatDur }]
+    sides: [{ id, name, color, short }],
+    map: {
+      provinces: [{ id, name, terrain, polygon, owner, vp, neighbors }],
+      borders: [{ a, b, points }],
+      cities, rivers
+    },
+    units: [{ id, name, side, type, provinceId, strength, morale, attack, defense, speed, orders }],
+    phases: [{ at, date, label, log, effects }],
+    text: { time, place, figures, result, impact }
   }
 }
 ```
@@ -89,7 +111,7 @@
 - 大理、吐蕃、河西、清源军等未单列色块，图例已标「未单列」。
 - 只有高平之战有 3D 场景；其他事件是「待补」。
 - 隋唐/宋朝仍是示意 blob，没有补简化多边形。
-- 所有事件插画、封面、背景尚未生成，当前为占位。
+- 24 张事件插画/封面/背景已接入；`map-relief` 可选地图纹理仍缺失，不影响 Demo。
 - 没有真实 DEM / 海拔查询；沙盘为程序化平面。
 - 没有世界史主题（一战/二战路线）；引擎支持任意经纬度范围，后续可加。
 
@@ -107,7 +129,7 @@ course/
 │  ├─ route.js         路线曲线与生长
 │  ├─ ui.js            顶栏、时间轴、卡片、问答、来源、场景 UI
 │  ├─ sfx.js           Web Audio 合成音效
-│  ├─ scene.js         全知视角 3D 场景（当前 battlefield）
+│  ├─ scene.js         war 兵棋推演（省份/战线/兵力/自动战斗）
 │  └─ main.js          启动、主题/事件切换、键盘、自动演示、API
 ├─ data/
 │  ├─ themes.index.js

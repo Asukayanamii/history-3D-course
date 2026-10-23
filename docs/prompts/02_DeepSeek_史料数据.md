@@ -247,7 +247,12 @@ sourceRecords: [
 - 地图快照：**必须明确一个年份**（如 955 年），核对当年实际存在的政权。注意：楚、闽等在 955 年前后已亡或已被吞并，不要为了凑“十国”保留已亡政权。可以展示后周、南唐、吴越、后蜀、南汉、荆南、北汉、契丹，以及实际存在的地方势力；在 `地图说明.md` 解释取舍。
 - **多边形**：至少后周、南唐、吴越、后蜀、南汉、契丹 6 个主要政权提供简化多边形；其他政权可用小多边形或 blob。不要复制图幅，只按公开历史地图示意简化。
 - **结构化人物**：10 个事件都补 `figures/result/impact`；不要只写在 `detail` 里。
-- **场景**：`e06 高平之战` 保留 `scene`，并补 `scene.text`；如果要做第二个场景，先在审核清单说明，不要改 schema。
+- **战争场景（v0.3）**：`e06 高平之战` 使用 `scene.type: "war"`：
+  - `map.provinces` 8–10 个，带 polygon/owner/terrain/neighbors/vp；`map.borders` 写相邻省份共享边界；
+  - `units` 有 `strength/morale/attack/defense/speed/orders`；`phases[].effects` 只做 morale/attack 修正；
+  - **不要写 `front.keyframes`**；战线由引擎根据 owner 自动生成；
+  - 兵力/攻防是相对示意，不是精确史料数字；不要写“真实兵力 X 万”；
+  - `scene.text` 与事件 `figures/result/impact` 一致；如果要做第二个战场，先说明，不要改 schema。
 - 三条路线：`r-capitals`（五代更迭）、`r-north`（高平—北伐）、`r-south`（三征南唐）。节点沿用 Claude 的命名，坐标可修正。
 - 关键来源：教材；《旧五代史》《新五代史》《资治通鉴》；《中国历史地图集》；中国大百科全书；博物馆/大学页面。
 - 重点讲清：五代十国是唐末藩镇割据的延续；北方政权更迭频繁；南方相对稳定；后周改革为北宋统一奠定基础；陈桥兵变建立北宋。

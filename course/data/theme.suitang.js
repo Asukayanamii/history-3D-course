@@ -11,7 +11,7 @@ window.HISTORY_THEMES.suitang = {
 
   meta: {
     id: "suitang",
-    order: 2,
+    order: 1,
     tabLabel: "隋唐",
     title: "隋唐",
     subtitle: "安史之乱 · 盛唐转折",

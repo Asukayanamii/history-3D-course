@@ -287,6 +287,13 @@
   });
   ui.on("scene-exit", function () { HS.scene.exit(); });
   ui.on("scene-play", function () { HS.scene.toggle(); });
+  ui.on("war-speed", function (btn) {
+    var n = btn && btn.getAttribute ? +btn.getAttribute("data-speed") : 1;
+    HS.scene.setSpeed(n);
+  });
+  ui.on("war-restart", function () { HS.scene.restart(); });
+  ui.on("war-phase", function (i) { HS.scene.goToPhase(i); });
+  ui.on("war-layer", function (o) { HS.scene.setWarLayer(o.name, o.on); });
   ui.on("layers", function () { ui.toggleLayers(); });
   ui.on("layer", function (o) { applyLayer(o.name, o.on); });
   ui.on("sound", toggleMute);
@@ -311,8 +318,19 @@
     var k = e.key, handled = true;
 
     if (HS.scene && HS.scene.active) {
-      if (k === "Escape" || k === "e" || k === "E") { HS.scene.exit(); e.preventDefault(); }
-      else if (k === " " || k === "Spacebar") { HS.scene.toggle(); e.preventDefault(); }
+      var sc = HS.scene.state();
+      if (sc.type === "war") {
+        if (k === "1" || k === "2" || k === "3") HS.scene.setSpeed(k === "3" ? 4 : +k);
+        else if (k === "r" || k === "R") HS.scene.restart();
+        else if (k === "l" || k === "L") ui.toggleWarLayers();
+        else if (k === "Escape" || k === "e" || k === "E") HS.scene.exit();
+        else if (k === " " || k === "Spacebar") HS.scene.toggle();
+      } else if (k === "Escape" || k === "e" || k === "E") {
+        HS.scene.exit();
+      } else if (k === " " || k === "Spacebar") {
+        HS.scene.toggle();
+      }
+      e.preventDefault();
       return;
     }
 
@@ -389,13 +407,18 @@
     },
     exitScene: function () { return HS.scene.exit(); },
     toggleScene: function () { return HS.scene.toggle(); },
+    setSceneSpeed: function (n) { return HS.scene.setSpeed(n); },
+    restartScene: function () { return HS.scene.restart(); },
+    goToScenePhase: function (i) { return HS.scene.goToPhase(i); },
     state: function () {
       var ev = st.events[st.idx], r = st.routes ? st.routes.state() : { routeId: "", progress: 0 };
+      var ss = HS.scene ? HS.scene.state() : { active: false, type: "" };
       return {
         theme: st.themeId, eventId: ev ? ev.id : "", routeId: r.routeId, progress: r.progress,
         playing: st.playing, muted: sfx.muted, index: st.idx, total: st.events.length,
         cardOpen: ui.cardOpen, flying: HS.camera.flying, switching: st.switching, modal: ui.anyModal(), dwell: params.dwell,
-        scene: !!(HS.scene && HS.scene.active)
+        scene: !!ss.active, sceneType: ss.type || "",
+        war: ss.type === "war" ? ss : null
       };
     },
     screenOf: function (lon, lat) {

@@ -435,7 +435,7 @@ code, .mono { font-family: Consolas, "SFMono-Regular", Menlo, monospace; font-si
 }
 .card-figures b { color: var(--sand); font-weight: 600; margin-right: 6px; letter-spacing: 0.06em; }
 
-/* ---------------- 3D 场景（全知视角） ---------------- */
+/* ---------------- 3D 场景（war 兵棋推演 / battlefield） ---------------- */
 #sceneView { position: fixed; inset: 0; z-index: 55; overflow: hidden; background: #07100e; }
 #sceneView[hidden] { display: none; }
 #sceneCanvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; outline: none; }
@@ -504,4 +504,91 @@ code, .mono { font-family: Consolas, "SFMono-Regular", Menlo, monospace; font-si
   #sceneFoot { left: 10px; right: 10px; bottom: 10px; gap: 10px; }
   .scene-hint { display: none; }
   #sceneLegend { gap: 6px 10px; }
+}
+
+/* ---------------- 兵棋 UI ---------------- */
+.scene-tools { display: flex; align-items: center; gap: 8px; }
+.war-speed {
+  display: flex; gap: 2px; padding: 3px; border-radius: 7px;
+  background: rgba(6, 15, 13, 0.72); border: 1px solid var(--hair);
+}
+.war-speed button {
+  min-width: 34px; padding: 5px 8px; border-radius: 5px;
+  font: 600 12px var(--f-ui); color: var(--paper-dim);
+}
+.war-speed button:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
+.war-speed button.is-on { color: var(--ink-1); background: var(--sand); }
+
+#warSides {
+  position: absolute; z-index: 4; left: 28px; top: 112px; width: 220px;
+  padding: 13px 15px; border-radius: 10px;
+  background: rgba(7, 16, 14, 0.82); border: 1px solid var(--hair);
+  backdrop-filter: blur(8px); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+.war-side + .war-side { margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--hair); }
+.ws-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.ws-head b { font: 600 14px var(--f-ui); color: var(--paper); letter-spacing: 0.08em; }
+.ws-head span { font: 12px var(--f-ui); color: var(--sand); }
+.ws-bar { height: 5px; margin: 6px 0 4px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+.ws-bar i { display: block; height: 100%; width: 0; border-radius: 3px; background: var(--c); box-shadow: 0 0 8px var(--c); transition: width 0.25s; }
+.ws-sub { font: 11.5px var(--f-ui); color: var(--muted); }
+
+#warTimeline {
+  position: absolute; z-index: 4; left: 28px; right: 28px; bottom: 82px;
+  padding: 8px 12px; border-radius: 9px;
+  background: rgba(6, 15, 13, 0.78); border: 1px solid var(--hair);
+  backdrop-filter: blur(8px); overflow-x: auto;
+}
+.war-track { display: flex; align-items: flex-start; gap: 8px; min-width: max-content; }
+.war-phase {
+  position: relative; flex: 1 0 110px; min-width: 110px; padding: 4px 8px 5px 16px;
+  text-align: left; border-radius: 6px; color: var(--muted);
+  border: 1px solid transparent;
+}
+.war-phase:hover { background: rgba(255, 255, 255, 0.05); color: var(--paper); }
+.war-phase i {
+  position: absolute; left: 5px; top: 8px; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--ink-3); border: 1px solid var(--muted);
+}
+.war-phase span { display: block; font: 10.5px var(--f-ui); letter-spacing: 0.05em; }
+.war-phase b { display: block; font: 600 12px var(--f-ui); color: inherit; white-space: nowrap; }
+.war-phase.is-done { color: var(--paper-dim); }
+.war-phase.is-done i { background: var(--jade-dim); border-color: var(--jade); }
+.war-phase.is-on { color: #fff; background: rgba(220, 195, 145, 0.1); border-color: rgba(220, 195, 145, 0.3); }
+.war-phase.is-on i { background: var(--sand); border-color: var(--sand); box-shadow: 0 0 8px var(--sand); }
+
+#warLog { max-height: 170px; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; scrollbar-color: #4a5d54 transparent; }
+.war-log-item {
+  position: relative; padding: 4px 0 4px 11px; font: 12px/1.55 var(--f-ui); color: var(--paper-dim);
+  border-left: 2px solid var(--hair);
+}
+.war-log-item + .war-log-item { margin-top: 2px; }
+.war-log-item.kind-phase { color: var(--sand); border-left-color: var(--sand); }
+.war-log-item.kind-battle { color: #f0b49c; border-left-color: #d4553b; }
+.war-log-item.kind-occupy { color: #d6e6c8; border-left-color: #7e9a52; }
+.war-log-item.kind-rout { color: #c8d6e6; border-left-color: #6f8399; }
+.war-log-item.kind-end { color: #fff; border-left-color: #d8b56a; }
+.war-log-item.is-link { cursor: pointer; }
+.war-log-item.is-link:hover { color: #fff; background: rgba(220, 195, 145, 0.07); }
+
+#warLayersBody { display: flex; flex-wrap: wrap; gap: 6px 12px; }
+#warLayersBody label { display: inline-flex; align-items: center; gap: 5px; font: 12px var(--f-ui); color: var(--paper-dim); cursor: pointer; }
+#warLayersBody input { accent-color: var(--sand); width: 13px; height: 13px; }
+
+#warUnitTip {
+  position: fixed; z-index: 70; max-width: 280px; padding: 8px 11px; border-radius: 7px;
+  font: 12px/1.55 var(--f-ui); color: var(--paper);
+  background: rgba(4, 11, 9, 0.94); border: 1px solid rgba(220, 195, 145, 0.35);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.55); pointer-events: none;
+}
+#warUnitTip b { color: var(--sand); font-weight: 600; }
+
+@media (max-width: 900px) {
+  #warSides { left: 10px; top: 76px; width: 158px; padding: 9px 11px; }
+  .ws-head b { font-size: 12px; }
+  .ws-head span, .ws-sub { font-size: 10.5px; }
+  #warTimeline { left: 10px; right: 10px; bottom: 70px; padding: 6px 8px; }
+  .war-phase { flex-basis: 92px; min-width: 92px; }
+  .war-phase b { font-size: 11px; }
+  #warUnitTip { max-width: 220px; }
 }

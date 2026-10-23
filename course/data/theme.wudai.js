@@ -17,7 +17,7 @@ window.HISTORY_THEMES.wudai = {
 
   meta: {
     id: "wudai",
-    order: 1,
+    order: 2,
     tabLabel: "五代十国",
     title: "五代十国",
     subtitle: "907—979 · 分裂与重组",
@@ -332,35 +332,144 @@ window.HISTORY_THEMES.wudai = {
       result: "后周军在高平击败北汉与辽联军，北汉退守太原。",
       impact: "柴荣借此树立权威，整顿禁军，为后周改革与北伐奠定基础。",
       scene: {
-        type: "battlefield",
-        title: "高平之战 · 全知视角",
+        type: "war",
+        title: "高平之战 · 兵棋推演",
         subtitle: "954 年 · 后周 vs 北汉 / 辽",
-        note: "低多边形艺术复原，不是历史影像；兵力、位置与旗帜均为示意。",
-        duration: 16,
-        camera: { dist: 46, az: 0, polar: 60 },
+        note: "省份、兵力、战线为战术示意，不是精确历史阵图。",
+        duration: 30,
+        tick: 0.1,
+        seed: 954,
+        camera: { dist: 90, az: 0, polar: 50, target: [0, 0] },
+        sides: [
+          { id: "zhou", name: "后周", color: "#d4553b", short: "周" },
+          { id: "beihan", name: "北汉", color: "#6f8399", short: "汉" },
+          { id: "liao", name: "辽", color: "#8a7a5a", short: "辽" }
+        ],
+        map: {
+          provinces: [
+            { id: "taiyuan", name: "太原", terrain: "mountain", owner: "beihan", vp: 3,
+              polygon: [[-36,30],[-12,30],[-12,10],[-36,10]],
+              neighbors: ["daizhou", "qinshui"] },
+            { id: "daizhou", name: "代州", terrain: "mountain", owner: "liao", vp: 1,
+              polygon: [[-12,30],[12,30],[12,10],[-12,10]],
+              neighbors: ["taiyuan", "luzhou", "gaoping"] },
+            { id: "luzhou", name: "潞州", terrain: "hill", owner: "beihan", vp: 3,
+              polygon: [[12,30],[36,30],[36,10],[12,10]],
+              neighbors: ["daizhou", "huguan"] },
+            { id: "qinshui", name: "沁水", terrain: "mountain", owner: "zhou", vp: 1,
+              polygon: [[-36,10],[-12,10],[-12,-10],[-36,-10]],
+              neighbors: ["taiyuan", "gaoping", "duanshi"] },
+            { id: "gaoping", name: "高平", terrain: "river_valley", owner: "zhou", vp: 3,
+              polygon: [[-12,10],[12,10],[12,-10],[-12,-10]],
+              neighbors: ["daizhou", "qinshui", "huguan", "zezhou"] },
+            { id: "huguan", name: "壶关", terrain: "hill", owner: "beihan", vp: 2,
+              polygon: [[12,10],[36,10],[36,-10],[12,-10]],
+              neighbors: ["luzhou", "gaoping", "lingchuan"] },
+            { id: "duanshi", name: "端氏", terrain: "hill", owner: "zhou", vp: 1,
+              polygon: [[-36,-10],[-12,-10],[-12,-30],[-36,-30]],
+              neighbors: ["qinshui", "zezhou"] },
+            { id: "zezhou", name: "泽州", terrain: "plain", owner: "zhou", vp: 3,
+              polygon: [[-12,-10],[12,-10],[12,-30],[-12,-30]],
+              neighbors: ["gaoping", "duanshi", "lingchuan"] },
+            { id: "lingchuan", name: "陵川", terrain: "mountain", owner: "zhou", vp: 1,
+              polygon: [[12,-10],[36,-10],[36,-30],[12,-30]],
+              neighbors: ["huguan", "zezhou"] }
+          ],
+          borders: [
+            { a: "taiyuan", b: "daizhou", points: [[-12,30],[-12,10]] },
+            { a: "daizhou", b: "luzhou", points: [[12,30],[12,10]] },
+            { a: "taiyuan", b: "qinshui", points: [[-36,10],[-12,10]] },
+            { a: "daizhou", b: "gaoping", points: [[-12,10],[12,10]] },
+            { a: "luzhou", b: "huguan", points: [[12,10],[36,10]] },
+            { a: "qinshui", b: "gaoping", points: [[-12,10],[-12,-10]] },
+            { a: "gaoping", b: "huguan", points: [[12,10],[12,-10]] },
+            { a: "qinshui", b: "duanshi", points: [[-36,-10],[-12,-10]] },
+            { a: "gaoping", b: "zezhou", points: [[-12,-10],[12,-10]] },
+            { a: "huguan", b: "lingchuan", points: [[12,-10],[36,-10]] },
+            { a: "duanshi", b: "zezhou", points: [[-12,-10],[-12,-30]] },
+            { a: "zezhou", b: "lingchuan", points: [[12,-10],[12,-30]] }
+          ],
+          cities: [
+            { id: "gaoping-city", name: "高平", provinceId: "gaoping", pos: [0, 0] },
+            { id: "zezhou-city", name: "晋城", provinceId: "zezhou", pos: [0, -20] },
+            { id: "luzhou-city", name: "潞州", provinceId: "luzhou", pos: [24, 20] },
+            { id: "taiyuan-city", name: "太原", provinceId: "taiyuan", pos: [-24, 20] },
+            { id: "daizhou-city", name: "代州", provinceId: "daizhou", pos: [0, 20] }
+          ],
+          rivers: [
+            { id: "danhe", name: "丹河", points: [[-30,-6],[-16,-2],[0,2],[16,6],[30,10]] }
+          ]
+        },
+        units: [
+          { id: "zhou-center", name: "后周中军", side: "zhou", type: "infantry",
+            provinceId: "zezhou", strength: 100, morale: 100, attack: 12, defense: 11, speed: 1.0,
+            orders: [
+              { at: 0.00, type: "defend", to: "zezhou" },
+              { at: 0.55, type: "attack", to: "gaoping" },
+              { at: 0.82, type: "advance", to: "huguan" },
+              { at: 0.95, type: "advance", to: "luzhou" }
+            ] },
+          { id: "zhou-right", name: "后周右军", side: "zhou", type: "infantry",
+            provinceId: "gaoping", strength: 65, morale: 70, attack: 8, defense: 8, speed: 0.9,
+            orders: [
+              { at: 0.00, type: "defend", to: "gaoping" },
+              { at: 0.42, type: "retreat", to: "zezhou" }
+            ] },
+          { id: "zhou-left", name: "后周左军", side: "zhou", type: "infantry",
+            provinceId: "qinshui", strength: 75, morale: 85, attack: 10, defense: 9, speed: 1.0,
+            orders: [
+              { at: 0.00, type: "defend", to: "qinshui" },
+              { at: 0.60, type: "attack", to: "gaoping" },
+              { at: 0.88, type: "advance", to: "huguan" }
+            ] },
+          { id: "beihan-main", name: "北汉军", side: "beihan", type: "infantry",
+            provinceId: "luzhou", strength: 90, morale: 90, attack: 11, defense: 9, speed: 1.0,
+            orders: [
+              { at: 0.05, type: "advance", to: "huguan" },
+              { at: 0.20, type: "advance", to: "gaoping" },
+              { at: 0.75, type: "retreat", to: "huguan" },
+              { at: 0.88, type: "retreat", to: "luzhou" },
+              { at: 0.96, type: "retreat", to: "daizhou" }
+            ] },
+          { id: "beihan-forward", name: "北汉前锋", side: "beihan", type: "infantry",
+            provinceId: "huguan", strength: 60, morale: 80, attack: 9, defense: 8, speed: 1.1,
+            orders: [
+              { at: 0.00, type: "defend", to: "huguan" },
+              { at: 0.10, type: "advance", to: "gaoping" },
+              { at: 0.75, type: "retreat", to: "huguan" },
+              { at: 0.92, type: "retreat", to: "luzhou" }
+            ] },
+          { id: "liao-flank", name: "辽军", side: "liao", type: "cavalry",
+            provinceId: "daizhou", strength: 55, morale: 80, attack: 10, defense: 8, speed: 1.3,
+            orders: [
+              { at: 0.12, type: "advance", to: "gaoping" },
+              { at: 0.78, type: "retreat", to: "daizhou" }
+            ] }
+        ],
+        phases: [
+          { at: 0.00, date: "954.3 初", label: "北汉南下",
+            log: "北汉与辽军越过太平驿，向高平推进。", effects: [] },
+          { at: 0.22, date: "954.3 上", label: "高平接战",
+            log: "两军在高平接战，后周右军承受压力。", effects: [] },
+          { at: 0.42, date: "954.3 中", label: "右军溃退",
+            log: "樊爱能、何徽率右军退走，后周阵线出现缺口。",
+            effects: [{ type: "morale", side: "zhou", unit: "zhou-right", value: -40 }] },
+          { at: 0.55, date: "954.3 下", label: "柴荣督战",
+            log: "柴荣亲临阵前，赵匡胤等率军反击。",
+            effects: [{ type: "attack", side: "zhou", value: 0.2 }, { type: "morale", side: "zhou", value: 10 }] },
+          { at: 0.75, date: "954.3 末", label: "北汉溃退",
+            log: "北汉军阵线崩溃，辽军后撤。",
+            effects: [{ type: "morale", side: "beihan", value: -30 }, { type: "morale", side: "liao", value: -20 }] },
+          { at: 0.92, date: "战后", label: "战后",
+            log: "后周军追击，北汉退守太原。", effects: [] }
+        ],
         text: {
           time: "954 年三月",
           place: "高平（今山西高平）",
           figures: ["柴荣（后周世宗）", "刘崇（北汉世祖）", "杨衮（辽将）"],
           result: "后周军在高平击败北汉与辽联军，北汉退守太原。",
           impact: "柴荣借此树立权威，整顿禁军，为后周改革与北伐奠定基础。"
-        },
-        phases: [
-          { at: 0.0, label: "接战" },
-          { at: 0.45, label: "相持" },
-          { at: 0.75, label: "北汉军溃退" }
-        ],
-        units: [
-          { id: "zhou", name: "后周军", color: "#d4553b", count: 120, formation: "infantry",
-            start: [-10, 6], moveTo: [-1, 1], moveAt: 0.08, moveDur: 0.4,
-            retreatTo: [-10, 6], retreatAt: 0.9, retreatDur: 0.1, facing: 0 },
-          { id: "beihan", name: "北汉军", color: "#6f8399", count: 90, formation: "infantry",
-            start: [10, -4], moveTo: [1, -1], moveAt: 0.12, moveDur: 0.4,
-            retreatTo: [13, -10], retreatAt: 0.72, retreatDur: 0.2, facing: 180 },
-          { id: "liao", name: "辽军", color: "#8a7a5a", count: 60, formation: "cavalry",
-            start: [14, -12], moveTo: [8, -6], moveAt: 0.2, moveDur: 0.35,
-            retreatTo: [18, -15], retreatAt: 0.78, retreatDur: 0.18, facing: 180 }
-        ]
+        }
       },
       ask: { q: "高平之战对柴荣意味着什么？", a: "它既是生死考验，也是改革契机；柴荣借此树立权威，开始整顿军队、削弱藩镇，为后续南征北伐打基础。" },
       image: { file: "assets/events/wudai/e06.jpg", alt: "高平山地战场上后周军反击北汉与辽军的艺术复原示意。", promptId: "wudai-e06", credit: "AI 艺术复原示意" },

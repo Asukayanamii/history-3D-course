@@ -8,7 +8,7 @@ window.HISTORY_LICENSE = {
     name: "史境 · 三维历史沙盘（占位名）",
     team: "history-3D-course 大创项目组",
     usage: "仅用于课堂教学演示与项目汇报，不商用",
-    version: "0.1.0-demo"
+    version: "0.3.0-demo"
   },
 
   aiStatement: "插画与封面为 AI 生成的艺术复原示意，不是历史影像。",

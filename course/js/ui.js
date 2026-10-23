@@ -38,7 +38,7 @@
         else if (b.closest("#card")) fire("close-card");
         return;
       }
-      fire(act);
+      fire(act, b);
     });
 
     // 点遮罩空白处关闭弹窗
@@ -241,6 +241,9 @@
 
   ui.openScene = function (data, ev) {
     data = data || {};
+    ["warSides", "warTimeline", "warSpeed", "warRestart", "warLogWrap", "warLayersWrap"].forEach(function (id) {
+      var el = $(id); if (el) el.hidden = true;
+    });
     var t = data.text || {};
     $("sceneTitle").textContent = data.title || (ev && ev.title) || "3D 场景";
     $("sceneSub").textContent = data.subtitle || "";
@@ -261,7 +264,13 @@
     ui.setScenePlaying(true);
   };
 
-  ui.closeScene = function () { $("sceneView").hidden = true; };
+  ui.closeScene = function () {
+    $("sceneView").hidden = true;
+    ["warSides", "warTimeline", "warSpeed", "warRestart", "warLogWrap", "warLayersWrap"].forEach(function (id) {
+      var el = $(id); if (el) el.hidden = true;
+    });
+    ui.hideWarTip();
+  };
   ui.setScenePlaying = function (on) {
     var label = $("scenePlayLabel");
     if (label) label.textContent = on ? "暂停" : "继续";
@@ -271,6 +280,118 @@
   ui.setScenePhase = function (label, progress) {
     $("scenePhase").textContent = label || "战况";
     $("sceneProgress").style.width = Math.max(0, Math.min(1, progress || 0)) * 100 + "%";
+  };
+
+  /* ---------------- 兵棋 UI ---------------- */
+  ui.warPhases = [];
+
+  ui.openWarScene = function (data, ev) {
+    ui.openScene(data, ev);
+    $("warSides").hidden = false;
+    $("warTimeline").hidden = false;
+    $("warSpeed").hidden = false;
+    $("warRestart").hidden = false;
+    $("warLogWrap").hidden = false;
+    $("warLayersWrap").hidden = false;
+    $("warLog").innerHTML = "";
+    var legend = $("sceneLegend");
+    legend.innerHTML = "";
+    (data.sides || []).forEach(function (s) {
+      legend.appendChild(U.el("span", "unit", "<i style='--c:" + U.esc(s.color) + "'></i>" + U.esc(s.name)));
+    });
+    var wrap = $("warPhases");
+    wrap.innerHTML = "";
+    ui.warPhases = data.phases || [];
+    ui.warPhases.forEach(function (p, i) {
+      var b = U.el("button", "war-phase", "<i></i><span>" + U.esc(p.date || "") + "</span><b>" + U.esc(p.label || "") + "</b>");
+      b.addEventListener("click", function () { fire("war-phase", i); });
+      wrap.appendChild(b);
+    });
+    ui.buildWarLayers();
+    ui.setWarSpeed(1);
+    ui.setScenePlaying(true);
+    ui.setWarPhase(null, 0, -1, ui.warPhases);
+  };
+
+  ui.setWarStats = function (stats, sides) {
+    var box = $("warSides");
+    if (!box) return;
+    var h = "";
+    (sides || []).forEach(function (s) {
+      var st = (stats && stats.sides && stats.sides[s.id]) || { pct: 100, provinces: 0, control: 0, units: 0 };
+      h += "<div class='war-side' style='--c:" + U.esc(s.color) + "'>" +
+        "<div class='ws-head'><b>" + U.esc(s.name) + "</b><span>兵力 " + Math.round(st.pct) + "%</span></div>" +
+        "<div class='ws-bar'><i style='width:" + Math.round(st.pct) + "%'></i></div>" +
+        "<div class='ws-sub'>控制 " + st.provinces + " 省 · " + Math.round(st.control) + "% · 单位 " + st.units + "</div></div>";
+    });
+    box.innerHTML = h;
+  };
+
+  ui.setWarPhase = function (phase, progress, index, phases) {
+    $("scenePhase").textContent = phase ? phase.label : "战况";
+    $("sceneProgress").style.width = Math.max(0, Math.min(1, progress || 0)) * 100 + "%";
+    var btns = document.querySelectorAll("#warPhases .war-phase");
+    btns.forEach(function (b, i) {
+      b.classList.toggle("is-on", i === index);
+      b.classList.toggle("is-done", index >= 0 && i < index);
+    });
+  };
+
+  ui.appendWarLog = function (msg, kind, phaseIndex) {
+    var box = $("warLog");
+    if (!box) return;
+    var d = U.el("div", "war-log-item kind-" + (kind || "info"), U.esc(msg));
+    if (phaseIndex != null && phaseIndex >= 0) {
+      d.classList.add("is-link");
+      d.title = "跳到该阶段";
+      d.addEventListener("click", function () { fire("war-phase", phaseIndex); });
+    }
+    box.appendChild(d);
+    while (box.children.length > 80) box.removeChild(box.firstChild);
+    box.scrollTop = box.scrollHeight;
+  };
+
+  ui.setWarSpeed = function (n) {
+    document.querySelectorAll("#warSpeed button").forEach(function (b) {
+      b.classList.toggle("is-on", +b.getAttribute("data-speed") === n);
+    });
+  };
+
+  ui.setWarPlaying = function (on) { ui.setScenePlaying(on); };
+
+  ui.showWarTip = function (html, x, y) {
+    var tip = $("warUnitTip");
+    if (!tip) return;
+    tip.innerHTML = html;
+    tip.hidden = false;
+    var w = tip.offsetWidth || 240, h = tip.offsetHeight || 70;
+    tip.style.left = Math.min(window.innerWidth - w - 12, Math.max(12, x + 16)) + "px";
+    tip.style.top = Math.min(window.innerHeight - h - 12, Math.max(12, y + 16)) + "px";
+  };
+  ui.hideWarTip = function () { var tip = $("warUnitTip"); if (tip) tip.hidden = true; };
+
+  ui.buildWarLayers = function () {
+    var box = $("warLayersBody");
+    if (!box) return;
+    box.innerHTML = "";
+    [
+      ["front", "战线"], ["routes", "路线"], ["units", "单位"],
+      ["battles", "战斗"], ["labels", "地名"], ["territory", "领土"]
+    ].forEach(function (pair) {
+      var lab = U.el("label", "", "<input type='checkbox' data-war-layer='" + pair[0] + "' checked><span>" + pair[1] + "</span>");
+      lab.querySelector("input").addEventListener("change", function (e) {
+        fire("war-layer", { name: pair[0], on: e.target.checked });
+      });
+      box.appendChild(lab);
+    });
+  };
+  ui.toggleWarLayers = function (force) {
+    var el = $("warLayersWrap");
+    if (el) el.hidden = force != null ? !force : !el.hidden;
+  };
+  ui.setWarLayerBox = function (name, on) {
+    var b = document.querySelector("#warLayersBody input[data-war-layer=" + name + "]");
+    if (b) b.checked = on;
   };
 
   /* ---------------- 弹窗 ---------------- */
