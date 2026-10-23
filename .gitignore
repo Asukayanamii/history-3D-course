@@ -1,0 +1,12 @@
+template
+.idea
+.vscode
+node_modules
+dist
+build
+coverage
+.DS_Store
+.env
+.env.local
+.env.development
+.env.production
