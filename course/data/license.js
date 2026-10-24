@@ -43,7 +43,7 @@ window.HISTORY_LICENSE = {
     "沙盘纹理、沙粒、等高线、海陆掩膜：Canvas 基于 DEM 现场绘制",
     "地形：Mapzen/Joerd Terrain Tiles 派生 Int16 高程网格（见 dem 段）",
     "小人、朝堂、军阵、微缩情景：Three.js 基础几何程序化生成",
-    "2:1 全景：由现有 16:9 插画扩展生成的教学示意，不是全景摄影；真全景槽位见 assets/vr/",
+    "2:1 全景：六个 P0 场景（wudai e06/e07/e08/e11、song e03、suitang e03）为 GPT-Image2 生成的 AI 艺术复原环境图，不是实拍；其余为 16:9 插画扩展的教学示意",
     "音效：Web Audio API 实时合成，无音频文件、无背景音乐",
     "字体：仅使用操作系统自带字体，无 Web Font"
   ]

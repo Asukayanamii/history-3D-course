@@ -6,7 +6,7 @@
 >
 > **v0.4 / v0.5（2026-10-23）**：v0.4 已完成真实 DEM 地形、所有战争事件 `battle`、e11 `court`、360° `vr`、地图微缩情景（见 `docs/需求修订_v0.4.md`）。v0.5 两项改进见 `docs/需求修订_v0.5.md`：battle 场景血条头标/占地网格、朝堂发言者历史人物名牌。新会话提示词见 `05`，真全景/ e11 生图与嵌入见 `06`。
 >
-> **v0.5.1（2026-10-24）**：修复主沙盘势力色块/边界高亮（CanvasTexture `needsUpdate` + ribbon `DoubleSide`）；battle 网格改为固定格子 + 持久 owner + 捕获计时，并新增地标。语义见 `docs/handoff/CODE_NOTES.md`。下一会话“先提交推送、再补 e06 路线轨迹”见 `07`。
+> **v0.5.1（2026-10-24）**：修复主沙盘势力色块/边界高亮（CanvasTexture `needsUpdate` + ribbon `DoubleSide`）；battle 网格改为固定格子 + 持久 owner + 捕获计时，并新增地标。六个 P0 真全景与 e11 插画已接入；e06 路线轨迹按 `moveT` 生长（见 `docs/handoff/WAR_SCENE_SPEC.md` 3.4.1）。语义见 `docs/handoff/CODE_NOTES.md`。下一会话“先提交推送、再补 e06 路线轨迹”见 `07`。
 
 ## 先定下的三件事
 

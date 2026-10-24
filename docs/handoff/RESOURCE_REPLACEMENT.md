@@ -12,13 +12,13 @@
 
 | 资源 | 当前 | 状态 | 替换/验收 |
 |---|---|---|---|
-| `assets/events/wudai/e11.jpg` | 程序化朝堂占位图 | `placeholder` | 用 GPT-Image2 真插画替换；brief 见 `docs/history/五代十国_图片脚本.md` |
-| `assets/vr/<theme>/<event>.jpg` | 16:9 插画扩展的 2:1 全景示意（21 张） | `ready`（示意） | 真全景按 `docs/prompts/04_GPT-Image2_VR全景.md` 替换；不要被 `build_vr_panos.py` 覆盖 |
+| `assets/events/wudai/e11.jpg` | GPT-Image2 朝堂插画 | `ready` | 真插画已接入；brief 见 `docs/history/五代十国_图片脚本.md` |
+| `assets/vr/<theme>/<event>.jpg` | 6 个 P0 槽位为 GPT-Image2 真 2:1 环境图；其余 15 张为 16:9 插画扩展示意 | `ready` | 真图已接入；不要被 `build_vr_panos.py` 覆盖 |
 | `course/data/dem/regions.js` | SRTM/GMTED/ETOPO1 派生 DEM | 已完成 | 来源/许可见 `docs/handoff/DEM_SOURCES.md`；勿手改 |
 | `map-relief` 平面纹理 | 已退役 | `retired` | 不再使用；真实地形由 DEM 提供 |
 | `battle` 场景 | 所有 war 事件自动生成 | 已完成 | 地形真实；兵力/阵型为示意 |
 | `court` 场景 | e11 世宗改革 | 已完成 | 台词为情景复原；待史实审核 |
-| `vr` 360° 查看器 | CSS 全景 + 热点 | 已完成 | `V` 进入/退出；真全景待替换 |
+| `vr` 360° 查看器 | CSS 全景 + 热点 | 已完成 | `V` 进入/退出；六个 P0 真全景已接入 |
 | 地图微缩情景 | 战争/朝堂 | 已完成 | 图层可关 |
 
 ---
@@ -91,10 +91,10 @@
 | S02 | 其他战役场景 | `battle` 自动生成（field/siege/cavalry/ambush/river） | 已完成（示意） | 可按重点战役精调 | 所有 war 事件可进入；地形真实、兵力示意 |
 | S03 | 朝堂辩论场景 | `court`（e11 世宗改革） | 已完成 | 史实/台词审核 | 皇帝/文官/侍卫；阶段发言 |
 | S04 | 建筑外观场景 | 未做 | 未做 | 后续 M4 | 新 `scene.type: "architecture"` |
-| S05 | VR/第一人称 | 360° 图片环视（CSS）+ 热点 | 已完成（示意全景） | 用 GPT-Image2 真全景替换 | 不是 WebXR/头显；2:1 扩展示意 |
+| S05 | VR/第一人称 | 360° 图片环视（CSS）+ 热点 | 已完成 | 六个 P0 真全景已接入；其余扩展示意 | 不是 WebXR/头显；AI 艺术复原，不是实拍 |
 | S06 | war 省份/边界/单位数据 | `theme.wudai.js#e06.scene` | 已完成（示意） | DeepSeek/耿雨核对 | 省份控制/兵力/战线为示意；不编造精确兵力 |
 
-war/battle/court 场景全部由程序化几何体生成，**不需要 GPT-Image2 出图**；`vr` 需要图片（当前为 2:1 扩展示意，真全景待替换）。不要把场景渲染图当作历史影像。战线由省份 owner 派生，不写手工关键帧。
+war/battle/court 场景全部由程序化几何体生成，**不需要 GPT-Image2 出图**；`vr` 需要图片（六个 P0 已接入真 2:1 环境图，其余为扩展示意）。不要把场景渲染图当作历史影像。战线由省份 owner 派生，不写手工关键帧。
 
 ---
 

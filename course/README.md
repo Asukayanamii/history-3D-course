@@ -89,7 +89,7 @@ v0.5.1 修复：主沙盘势力色块/边界高亮恢复；`battle` 网格改为
 ### 4. `vr` · 360° 全景
 
 - 2:1 全景（4096×2048）水平循环；拖动环视、滚轮缩放、自动巡游、热点、`Home` 复位。
-- 当前 `assets/vr/` 是 **由 16:9 插画扩展的 2:1 全景示意**，不是全景摄影。
+- `assets/vr/` 中的 P0 场景（`wudai/e06`、`wudai/e07`、`wudai/e08`、`wudai/e11`、`song/e03`、`suitang/e03`）已替换为 GPT-Image2 生成并修补接缝的 2:1 等距柱状环境图；其余槽位仍是由 16:9 插画扩展的全景示意。
 - 真全景提示词见 `docs/prompts/04_GPT-Image2_VR全景.md`；替换图片即可，不改引擎。
 - 查看器使用 CSS 全景层，不依赖 WebGL 外部纹理，`file://` 双击可用。
 
@@ -149,7 +149,7 @@ v0.5.1 修复：主沙盘势力色块/边界高亮恢复；`battle` 网格改为
 2. 在 `data/assets.js` 把对应条目的 `status` 改为 `"ready"`。
 3. 规格：1920×1080 JPEG、sRGB、16:9、无文字/水印、单张 ≤ 600KB。
 4. 缺图时卡片显示设计过的占位图，不会出现破图。
-5. `wudai/e11.jpg` 当前是程序化占位图（`status:"placeholder"`），待 GPT-Image2 替换。
+5. `wudai/e11.jpg` 已接入 GPT-Image2 生成的 1920×1080 朝堂插画（`status:"ready"`）。
 
 ### 替换全景
 
@@ -165,7 +165,7 @@ v0.5.1 修复：主沙盘势力色块/边界高亮恢复；`battle` 网格改为
 - DEM：Mapzen/Joerd Terrain Tiles；SRTM/GMTED2010/3DEP（USGS）与 ETOPO1（NOAA）公有领域；瓦片打包 attribution 按 Joerd 要求保留。
 - 许可：谁取用谁核实；无法确认就不用。耿雨只负责史实审核，不负责许可判断。
 - AI 插画/封面：主页/页脚统一声明「AI 生成的艺术复原示意，不是历史影像」，不逐张标注。
-- 2:1 全景：当前为 16:9 插画扩展示意，不是全景摄影；真全景槽位已留。
+- 2:1 全景：六个 P0 槽位为 GPT-Image2 生成的 AI 艺术复原环境图（非实拍）；其余槽位仍为插画扩展示意。
 - Three.js r147 / OrbitControls：MIT，保留版权头。
 
 ## 已知限制（Demo v0.5）
@@ -178,8 +178,8 @@ v0.5.1 修复：主沙盘势力色块/边界高亮恢复；`battle` 网格改为
 - 战争兵力、编制、省份/战线是教学示意，不是精确历史阵图。
 - 通用 `battle` 的兵/气条与占地网格由确定性时间模型生成，不是史实战况、精确战线或历史疆域；不使用随机数。
 - 朝堂人物称谓、台词是情景复原，不是史料原文；e11 的御史为角色化呈现，具体姓名待核订。
-- `wudai/e11` 卡片图仍为程序化占位；待 GPT-Image2。
-- 2:1 全景当前是插画扩展示意，不是真 360° 摄影；真全景待 GPT-Image2。
+- `wudai/e11` 卡片图已替换为 GPT-Image2 朝堂插画；其余事件图状态见 `data/assets.js`。
+- 六个 P0 2:1 槽位已使用 GPT-Image2 真全景环境图；它们仍是 AI 艺术复原，不是实拍或历史影像。
 - 没有世界史主题（一战/二战路线）；引擎支持任意经纬度范围，后续可加。
 - 没有 WebXR 头显/双眼立体；本轮 VR 指 360° 图片环视 + 3D 前景。
 
@@ -234,7 +234,7 @@ URL 参数：`?theme=wudai&event=e06&demo=1&dwell=8000&nointro=1`。
 
 ```bash
 python tools/build_dem.py --validate     # 生成 course/data/dem/regions.js
-python tools/build_vr_panos.py           # 生成 2:1 全景示意 / e11 占位图
+python tools/build_vr_panos.py           # 仅为未替换槽位生成 2:1 示意；会覆盖同名文件，真全景勿跑
 ```
 
 构建脚本只在本机运行；课件运行时不联网、不执行 Python。

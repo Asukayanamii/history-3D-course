@@ -98,11 +98,17 @@
     }
     var item = pano ? HS.assets.byPath(pano) : null;
     var usable = !!item && (item.status === "ready" || item.status === "needs-review");
+    var note = "图片环视，不是 360° 全景。";
+    if (usable) {
+      note = item.provider === "gpt-image2"
+        ? "360° 环视：2:1 环境图由 GPT-Image2 生成并修补接缝，是 AI 艺术复原，不是实拍或历史影像。"
+        : "360° 环视：2:1 全景由 AI 插画扩展生成，不是全景摄影；可替换为 GPT-Image2 真全景。";
+    }
     return {
       type: "vr",
       title: ev.title + " · 360° 环视",
       subtitle: (ev.shortDate || ev.date || "") + " · " + (ev.place || ""),
-      note: usable ? "360° 环视：2:1 全景由 AI 插画扩展生成，不是全景摄影；可替换为 GPT-Image2 真全景。" : "图片环视，不是 360° 全景。",
+      note: note,
       pano: usable ? pano : "",
       image: ev.image.file,
       hotspots: (ev.vr && ev.vr.hotspots) || [],
