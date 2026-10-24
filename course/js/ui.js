@@ -161,6 +161,34 @@
     st.hidden = !ev || ev.status === "reviewed";
     if (ev) st.textContent = STATUS_TEXT[ev.status] || STATUS_TEXT.placeholder;
 
+    // 空 regionId 不是“没有数据”，而是“本事件没有单一政权可高亮”：
+    // 地图快照约 955 年，907/923 事件的主角后梁/后唐并不在图中。
+    // 用胶囊明确回退，避免用户以为高亮坏了。
+    var reg = $("nowRegion");
+    if (!ev) {
+      reg.hidden = true;
+      reg.textContent = "";
+      reg.className = "now-region";
+      reg.title = "";
+    } else {
+      var rid = ev.regionId || "";
+      var list = (ui.theme && ui.theme.map && ui.theme.map.regions) || [];
+      var hit = null;
+      for (var i = 0; i < list.length; i++) if (list[i].id === rid) { hit = list[i]; break; }
+      reg.hidden = false;
+      if (hit) {
+        reg.className = "now-region";
+        reg.textContent = "高亮 " + hit.name;
+        reg.title = "主沙盘上以该政权的色块、边界脉冲和标签强调表示当前事件；其他政权弱化。";
+      } else {
+        reg.className = "now-region is-none";
+        reg.textContent = "无单一政权高亮";
+        reg.title = rid
+          ? "regionId 未匹配到地图政权：" + rid + "；已按无高亮处理。"
+          : "该事件没有单一政权可高亮：地图为约 955 年快照，事件年份或涉及政权可能不在图中。";
+      }
+    }
+
     var dots = document.querySelectorAll("#tlDots .tl-dot");
     dots.forEach(function (d, i) {
       d.classList.toggle("is-cur", ev && i === idx);
@@ -373,7 +401,7 @@
     (data.sides || []).forEach(function (s) {
       legend.appendChild(U.el("span", "unit", "<i style='--c:" + U.esc(s.color || "#888") + "'></i>" + U.esc(s.name)));
     });
-    legend.appendChild(U.el("p", "war-legend-note", "占地网格、兵/气条为战术示意，不是精确历史疆域或阵图。"));
+    legend.appendChild(U.el("p", "war-legend-note", "占地网格：灰=中立，色块=控制区；地标、兵/气条为战术示意，不是精确历史疆域或阵图。"));
     buildPhaseStrip(data);
     ui.buildBattleLayers();
     ui.setWarSpeed(1);
@@ -502,7 +530,7 @@
     if (!box) return;
     box.innerHTML = "";
     [
-      ["grid", "占地网格"], ["units", "单位"], ["labels", "名字"]
+      ["grid", "占地网格"], ["units", "单位"], ["landmarks", "地标"], ["labels", "名字"]
     ].forEach(function (pair) {
       var lab = U.el("label", "", "<input type='checkbox' data-war-layer='" + pair[0] + "' checked><span>" + pair[1] + "</span>");
       lab.querySelector("input").addEventListener("change", function (e) {

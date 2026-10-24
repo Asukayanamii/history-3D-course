@@ -577,7 +577,15 @@ window.HISTORY_THEMES.wudai = {
     {
       id: "e07", order: 8, date: "955—958年", shortDate: "955", title: "三征南唐",
       kind: "war",
-      battle: { preset: "siege", terrain: "huainan", sides: [{ id: "zhou", name: "后周", color: "#b0563c", short: "周" }, { id: "tang", name: "南唐", color: "#4f8a78", short: "唐" }] },
+      battle: {
+        preset: "siege", terrain: "huainan",
+        sides: [{ id: "zhou", name: "后周", color: "#b0563c", short: "周" }, { id: "tang", name: "南唐", color: "#4f8a78", short: "唐" }],
+        landmarks: [
+          { name: "寿州城", x: -14, z: 11, kind: "gate", side: 1 },
+          { name: "淮河渡口", x: -18, z: -2, kind: "bridge" },
+          { name: "后周营地", x: 0, z: -23, kind: "camp", side: 0 }
+        ]
+      },
       place: "寿州（今安徽寿县）", regionId: "houzhou", routeId: "r-south", nodeId: "shouzhou",
       lon: 116.78, lat: 32.60,
       summary: "955年至958年，后周世宗柴荣三次亲征南唐，攻下寿州等地，夺取江北十四州。南唐去帝号称臣，后周国力大增，为北宋统一南方铺路；此战是五代末年规模最大的战争之一。",
@@ -615,7 +623,15 @@ window.HISTORY_THEMES.wudai = {
     {
       id: "e08", order: 9, date: "959年", shortDate: "959", title: "北伐契丹",
       kind: "war",
-      battle: { preset: "cavalry", terrain: "hebei", sides: [{ id: "zhou", name: "后周", color: "#b0563c", short: "周" }, { id: "liao", name: "辽", color: "#8a7a5a", short: "辽" }] },
+      battle: {
+        preset: "cavalry", terrain: "hebei",
+        sides: [{ id: "zhou", name: "后周", color: "#b0563c", short: "周" }, { id: "liao", name: "辽", color: "#8a7a5a", short: "辽" }],
+        landmarks: [
+          { name: "瓦桥关", x: 0, z: 12, kind: "pass", side: 1 },
+          { name: "后周骑兵", x: -20, z: -8, kind: "cavalry", side: 0 },
+          { name: "辽军", x: 20, z: -8, kind: "cavalry", side: 1 }
+        ]
+      },
       place: "瓦桥关（今河北雄县一带）", regionId: "houzhou", routeId: "r-north", nodeId: "waqiaoguan",
       lon: 116.00, lat: 39.00,
       summary: "959年，柴荣北伐辽，收复瀛、莫等州及瓦桥关、益津关、淤口关，兵锋逼近幽州。正当准备进攻幽州时，柴荣病重，北伐中止；这是五代末年中原政权对辽最有力的一次反击。",

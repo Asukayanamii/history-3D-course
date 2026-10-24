@@ -359,7 +359,28 @@
   }
 
   /* ================================================================== *
-   *  WAR · 轻量兵棋：省份控制 + 单位兵力/士气 + 自动战斗 + 派生战线
+   *  WAR · 省域兵棋（e06 高平之战）
+   *
+   *  这是“省域兵棋”，不是 battle 的占地网格：
+   *   - 省份是数据里写死的静态 polygon（map.provinces），位置不随单位移动；
+   *   - 每省有持久 owner；单位只是省与省之间的棋子，按 orders 移动；
+   *   - warUpdateControl 只在“省内没有混合阵营单位”时改 owner：
+   *       无单位 -> 保持不变；只有一方 -> 该方占领；双方都有 -> 接战，不占领；
+   *   - warSetOwner 改 owner 后重绘省份覆盖纹理，并调用 warRebuildFront；
+   *   - warRebuildFront 不读关键帧，而是从“相邻省 owner 不同”派生战线；
+   *   - 阶段 phases 只改 morale/attack 与战报，不直接改 owner/战线；终局
+   *     7/1/1 是推演结果，不是写死的关键帧。
+   *
+   *  坐标与渲染约定（war 与 battle 共用）：
+   *   - 场景局部坐标 root.scale.z = -1，所以数据里的 +z 在屏幕上朝北/远处；
+   *   - 所有贴地对象必须走 terrain.heightAtXZ / heightAtLonLat，不能直接用 y=0；
+   *   - 省份色块用与地形同几何的 CanvasTexture 覆盖层，画完必须 needsUpdate；
+   *   - renderOrder / depthTest 只解决透明覆盖层与标签的叠放，不能替代贴地；
+   *   - 单位头标是 depthTest:false 的 Sprite，renderOrder 高于省份标签。
+   *
+   *  修改 war 时的回归底线：e06 终局仍为后周 7 省、北汉/辽各 1 省；
+   *  不把 battle 的静态网格/地标混入 war，也不把 war 的省份/战线逻辑
+   *  复用到 battle。两者共享地形与小人工厂，但控制状态模型不同。
    * ================================================================== */
   function sideOf(war, id) {
     return war.sides[id] || { id: id, name: id, color: "#888888", short: id };
@@ -530,6 +551,8 @@
       });
     });
   }
+  // 战线不是关键帧：每次 owner 变化后，从“相邻省 owner 不同”重新派生。
+  // beihan/liao 视为同一联盟，彼此边界不算前线（见 sameCoalition）。
   function warRebuildFront(war) {
     if (!war.frontGroup) return;
     while (war.frontGroup.children.length) {
@@ -895,6 +918,8 @@
     else { u.strength = 0; }
     warLog(war, u.name + "溃退", "rout", war.phaseIndex);
   }
+  // 省域兵棋的易手入口：改 owner、重绘省份覆盖层、重建派生战线，并写战报。
+  // 只有 warUpdateControl 判定“省内无混合阵营单位”时才会调用这里。
   function warSetOwner(war, p, side) {
     if (!p || p.owner === side) return;
     p.owner = side;
@@ -914,10 +939,10 @@
   function warUpdateControl(war) {
     war.provinceList.forEach(function (p) {
       var units = warUnitsIn(war, p.id);
-      if (!units.length) return;
+      if (!units.length) return;                 // 无驻军：归属保留
       var first = coalition(units[0].side);
       var mixed = units.some(function (u) { return coalition(u.side) !== first; });
-      if (!mixed) {
+      if (!mixed) {                              // 只有一方：占领；双方都有：接战，不占领
         var ownerSide = units[0].side;
         if (p.owner !== ownerSide) warSetOwner(war, p, ownerSide);
       }
@@ -1144,7 +1169,38 @@
   }
 
   /* ================================================================== *
-   * 通用战场 battle（所有 war 事件兜底）
+   * 通用战场 battle（没有显式 scene 的战争事件兜底）
+   *
+   *  与 war 的根本区别：
+   *   - war 的省份是静态 polygon，单位在省之间移动，控制单位是“省”；
+   *   - battle 的格子也是静态世界坐标，但控制单位是“格”；
+   *   - battle 的格子有持久 owner（null=中立 / 阵营 id）和 control 进度；
+   *     单位进入捕获半径只累积 control，完成后 owner 才改；单位离开后
+   *     owner 保留，敌方必须重新完成反占领；
+   *   - 多阵营同时压在格子上 = 争夺，owner 不变，control 回落；
+   *   - 网格不随单位平移，也不按“最近单位 + 半径”每帧上色；
+   *   - 初始 owner 由 battleInitialOwner 从预设/出生位置/城墙/河岸派生，
+   *     是战术示意，不是精确历史阵线。
+   *
+   *  battle 数据契约（可选）：
+   *   battle.landmarks: [{ name, x, z, kind, side? }]
+   *   kind: gate|wall|city|ford|bridge|riverbank|pass|ambush|camp|
+   *         battlefield|cavalry|road；side 可为 0/1 或阵营 id。
+   *   未提供时由 battleDefaultLandmarks 按 preset 生成，名称优先用事件 place。
+   *   地标是贴地 Sprite + 地面环，图层名 landmarks（界面“地标”）。
+   *
+   *  坐标与渲染约定：
+   *   - root.scale.z = -1；数据 +z 在屏幕上朝北/远处；
+   *   - 所有贴地对象走 terrain.heightAtXZ，不用 y=0；
+   *   - 占地网格/地形使用与战场 DEM 同几何的 CanvasTexture 覆盖纹理，
+   *     不是平面 GridHelper；画完必须 needsUpdate；
+   *   - 网格 renderOrder 3、省份/地标环 2、单位头标 30；透明覆盖层
+   *     depthWrite:false，靠 renderOrder 与贴地偏移避免 z-fighting；
+   *   - 捕获在固定 0.1s 的 gridClock 上推进，禁止 Math.random。
+   *
+   *  修改 battle 时的回归底线：五种 preset（field/siege/cavalry/ambush/
+   *   river）都要有静态格、初始 owner、持久占领和地标；e06 是 war，
+   *   不得出现第二套 battle 网格或地标。
    * ================================================================== */
   function battleSide(data, s) {
     if (typeof s === "number") return (data.sides || [])[s] || (data.sides || [])[0] || {};
@@ -1208,7 +1264,10 @@
     var x = U.lerp(d.start.x, d.end.x, move);
     var z = U.lerp(d.start.z, d.end.z, move);
     var retreat = 0;
-    if (battleSideIndex(data, d.side) === 1 && t > 0.8) {
+    // 只有真正会移动的守军才在 0.8 后“后撤”；站在城墙上的守军
+    // start=end，应继续据守，直到 battleHealth 判定溃退。
+    var canRetreat = Math.abs(d.end.x - d.start.x) > 0.01 || Math.abs(d.end.z - d.start.z) > 0.01;
+    if (battleSideIndex(data, d.side) === 1 && t > 0.8 && canRetreat) {
       retreat = U.clamp((t - 0.8) / 0.2, 0, 1);
       x = U.lerp(d.end.x, d.start.x, retreat);
       z = U.lerp(d.end.z, d.start.z, retreat);
@@ -1329,47 +1388,271 @@
     });
   }
 
-  function battleOwnerAt(B, x, z) {
-    var G = B.gridCfg, best = null, bestD = Infinity;
-    if (!G) return null;
-    B.units.forEach(function (u) {
-      var dx = u.x - x, dz = u.z - z;
+  /* ------------------------------------------------------------------ *
+   * battle 占地网格（静态格子 + 持久控制）
+   *
+   * 语义（与 war 的省份控制刻意区分）：
+   *   - 单元格是世界坐标里的固定格子，格子位置不随单位移动；
+   *   - 每格有持久 owner（null=中立 / 阵营 id）和 control 进度；
+   *   - 单位只是“占领者”：站在格子捕获半径内会累积 control，完成后
+   *     owner 才改变；单位离开后 owner 保留，敌方必须重新完成反占领；
+   *   - 多阵营同时压在格子上时视为争夺，owner 不变，control 回落；
+   *   - 初始 owner 由预设/出生位置/城墙/河岸派生，见 battleInitialOwner。
+   *   - 禁止“每帧找最近单位直接上色”；那是单位光环，不是占地。
+   *
+   * 确定性：捕获在固定 0.1s 的 gridClock 上推进，单位位置/兵力按同一
+   * 时间点由 battleMotion/battleHealth 求值，不用 Math.random，因此
+   * restart / goToPhase / setTime 在同一时间点可复现。
+   * ------------------------------------------------------------------ */
+  function battleNearestStart(list, x, z) {
+    if (!list || !list.length) return Infinity;
+    var best = Infinity;
+    for (var i = 0; i < list.length; i++) {
+      var dx = list[i].x - x, dz = list[i].z - z;
       var d2 = dx * dx + dz * dz;
-      if (d2 < bestD) { bestD = d2; best = u; }
+      if (d2 < best) best = d2;
+    }
+    return Math.sqrt(best);
+  }
+
+  function battleCollectStarts(B) {
+    var ids = B.sideIds || [];
+    var starts = {}, centers = {}, sums = {}, counts = {};
+    ids.forEach(function (id) { starts[id] = []; sums[id] = { x: 0, z: 0 }; counts[id] = 0; });
+    (B.unitDefs || []).forEach(function (d) {
+      var idx = battleSideIndex(B.data, d.side);
+      var id = ids[idx] || ids[0];
+      if (!id || !d.start) return;
+      starts[id].push({ x: d.start.x, z: d.start.z });
+      sums[id].x += d.start.x; sums[id].z += d.start.z; counts[id]++;
     });
-    if (best && Math.sqrt(bestD) <= G.captureRadius) return best.side.id;
+    ids.forEach(function (id) {
+      if (counts[id]) centers[id] = { x: sums[id].x / counts[id], z: sums[id].z / counts[id] };
+    });
+    B.gridStarts = starts;
+    B.gridCenters = centers;
+  }
+
+  function battleInitialOwner(B, x, z) {
+    var ids = B.sideIds || [];
+    if (ids.length < 2) return null;
+    var preset = B.data.preset || "field";
+    var c0 = B.gridCenters[ids[0]], c1 = B.gridCenters[ids[1]];
+    var side0 = ids[0], side1 = ids[1];
+
+    if (preset === "siege") {
+      // 城墙在 z=4（与 battleAddWall 同一示意位置）。墙后归守方，墙前归攻方，
+      // 墙脚留一格中立争夺带，避免把“城墙线”画成精确阵图。
+      var wallSide = null;
+      (B.unitDefs || []).forEach(function (d) {
+        if (d.wall && !wallSide) wallSide = ids[battleSideIndex(B.data, d.side)] || null;
+      });
+      if (!wallSide) wallSide = side1;
+      var attacker = wallSide === side0 ? side1 : side0;
+      if (z >= 4) return wallSide;
+      if (z < 2.0) return attacker;
+      return null;
+    }
+
+    if (preset === "river") {
+      // 河岸/浮桥示意线：守方在北岸、攻方在南岸，河道两侧留中立带。
+      var northSide = c1 && c0 && c1.z < c0.z ? side0 : side1;
+      var southSide = northSide === side1 ? side0 : side1;
+      var rz = Math.sin(x * 0.09) * 1.15;
+      if (z > rz + 3.2) return northSide;
+      if (z < rz - 3.2) return southSide;
+      return null;
+    }
+
+    if (preset === "ambush") {
+      // 伏击：道路走廊归行军方，两翼伏兵区归伏击方，其余中立。
+      var d0 = battleNearestStart(B.gridStarts[side0], x, z);
+      var d1 = battleNearestStart(B.gridStarts[side1], x, z);
+      if (d1 <= 11 && d1 <= d0) return side1;
+      if (d0 <= 9 && d0 <= d1) return side0;
+      if (Math.abs(x) < 5 && z < 0) return side0;
+      return null;
+    }
+
+    // field / cavalry 及自定义战场：用双方出生重心推一条示意前沿，
+    // 前沿两侧各留一条中立带；不依赖单位当前位置。
+    if (c0 && c1 && Math.abs(c1.z - c0.z) > 1) {
+      var front = (c0.z + c1.z) / 2;
+      var band = Math.max(2.4, B.gridCfg.cellH * 0.9);
+      var north = c1.z > c0.z ? side1 : side0;
+      var south = north === side1 ? side0 : side1;
+      if (z > front + band) return north;
+      if (z < front - band) return south;
+      return null;
+    }
+
+    // 兜底：按出生点最近阵营划分，仍不使用单位当前坐标。
+    var a0 = battleNearestStart(B.gridStarts[side0], x, z);
+    var a1 = battleNearestStart(B.gridStarts[side1], x, z);
+    if (a0 <= 10 && a0 <= a1) return side0;
+    if (a1 <= 10) return side1;
     return null;
+  }
+
+  function battleInitGrid(B) {
+    var G = B.gridCfg;
+    if (!G) return;
+    battleCollectStarts(B);
+    B.gridCells = [];
+    for (var r = 0; r < G.rows; r++) {
+      var wz = G.depth / 2 - (r + 0.5) * G.cellH;
+      for (var c = 0; c < G.cols; c++) {
+        var wx = -G.width / 2 + (c + 0.5) * G.cellW;
+        var owner = battleInitialOwner(B, wx, wz);
+        B.gridCells.push({
+          r: r, c: c, x: wx, z: wz,
+          owner: owner, controlSide: owner, control: owner ? 1 : 0, lastChange: 0
+        });
+      }
+    }
+    B.gridDirty = true;
+    B.gridStats = battleGridStats(B);
+  }
+
+  function battleGridStats(B) {
+    var out = { total: 0, neutral: 0, sides: {} };
+    (B.gridCells || []).forEach(function (cell) {
+      out.total++;
+      if (!cell.owner) { out.neutral++; return; }
+      out.sides[cell.owner] = (out.sides[cell.owner] || 0) + 1;
+    });
+    return out;
+  }
+
+  function battleGridTick(B, dt) {
+    var G = B.gridCfg;
+    if (!G || !B.gridCells) return;
+    var dur = B.data.duration || 24;
+    var t = U.clamp(B.gridClock / dur, 0, 1);
+    var preset = B.data.preset || "field";
+    var active = [];
+    B.units.forEach(function (u) {
+      var m = battleMotion(B.data, u.def, t);
+      if (m.retreat) return;
+      var hp = battleHealth(B, u, t);
+      if (hp.routed) return;
+      // 城墙/河岸是“单向屏障”：守墙单位不能越过墙脚去占攻方纵深，
+      // 北岸守军不能隔着河去占南岸。攻方不受限，渡河/破墙后才能夺取对岸。
+      var minZ = null;
+      if (preset === "siege" && u.def.wall) minZ = 2.0;
+      if (preset === "river" && u.def.start && u.def.start.z > 0) minZ = -1.5;
+      active.push({ x: m.x, z: m.z, side: u.side.id, minZ: minZ });
+    });
+    var radius2 = G.captureRadius * G.captureRadius;
+    var changed = false;
+    B.gridCells.forEach(function (cell) {
+      var counts = {};
+      for (var i = 0; i < active.length; i++) {
+        var u = active[i];
+        if (u.minZ != null && cell.z < u.minZ) continue;
+        var dx = u.x - cell.x, dz = u.z - cell.z;
+        if (dx * dx + dz * dz <= radius2) counts[u.side] = (counts[u.side] || 0) + 1;
+      }
+      var keys = Object.keys(counts);
+      if (!keys.length) {
+        if (cell.control > 0) {
+          cell.control = Math.max(0, cell.control - dt / G.captureTime * 0.8);
+          if (cell.control <= 0) { cell.control = 0; cell.controlSide = null; }
+          changed = true;
+        }
+        return;
+      }
+      if (keys.length > 1) {
+        // 争夺：不直接改 owner，已有进度回落；双方都离开后才重新可占。
+        if (cell.control > 0) {
+          cell.control = Math.max(0, cell.control - dt / G.captureTime * 1.4);
+          if (cell.control <= 0) { cell.control = 0; cell.controlSide = null; }
+          changed = true;
+        }
+        return;
+      }
+      var side = keys[0];
+      if (cell.owner === side) {
+        if (cell.control !== 1 || cell.controlSide !== side) {
+          cell.control = 1; cell.controlSide = side; changed = true;
+        }
+        return;
+      }
+      if (cell.controlSide !== side) { cell.controlSide = side; cell.control = 0; changed = true; }
+      var rate = (dt / G.captureTime) * (0.85 + 0.15 * Math.min(3, counts[side]));
+      var next = Math.min(1, cell.control + rate);
+      if (next !== cell.control) { cell.control = next; changed = true; }
+      if (cell.control >= 1) {
+        cell.owner = side;
+        cell.control = 1;
+        cell.lastChange = B.gridClock;
+        changed = true;
+      }
+    });
+    if (changed) {
+      B.gridDirty = true;
+      B.gridStats = battleGridStats(B);
+    }
+  }
+
+  function battlePaintRgba(col, a) {
+    return "rgba(" + Math.round(col.r * 255) + "," + Math.round(col.g * 255) + "," +
+      Math.round(col.b * 255) + "," + a + ")";
   }
 
   function paintBattleGrid(B) {
     var G = B.gridCfg, c = B.gridCanvas, g = B.gridCtx;
-    if (!G || !c) return;
+    if (!G || !c || !B.gridCells) return;
     var cw = c.width, ch = c.height;
-    g.clearRect(0, 0, cw, ch);
-    g.fillStyle = "rgba(120,130,122,.10)";
-    g.fillRect(0, 0, cw, ch);
     var cellW = cw / G.cols, cellH = ch / G.rows;
+    g.clearRect(0, 0, cw, ch);
     var sideColors = {};
-    (B.data.sides || []).forEach(function (s) { sideColors[s.id] = new THREE.Color(s.color || "#888888"); });
-    for (var r = 0; r < G.rows; r++) {
-      var wz = G.depth / 2 - (r + 0.5) * G.depth / G.rows;
-      for (var i = 0; i < G.cols; i++) {
-        var wx = -G.width / 2 + (i + 0.5) * G.width / G.cols;
-        var owner = battleOwnerAt(B, wx, wz);
-        var col = owner ? sideColors[owner] : null;
-        g.fillStyle = col
-          ? "rgba(" + Math.round(col.r * 255) + "," + Math.round(col.g * 255) + "," + Math.round(col.b * 255) + ",0.34)"
-          : "rgba(128,138,130,.10)";
-        g.fillRect(i * cellW + 0.5, r * cellH + 0.5, cellW - 1, cellH - 1);
-        if (col) {
-          var lite = col.clone().lerp(new THREE.Color(0xfff2d0), 0.5);
-          g.strokeStyle = "rgba(" + Math.round(lite.r * 255) + "," + Math.round(lite.g * 255) + "," + Math.round(lite.b * 255) + ",0.45)";
+    (B.data.sides || []).forEach(function (s) {
+      sideColors[s.id] = new THREE.Color(s.color || "#888888");
+    });
+
+    B.gridCells.forEach(function (cell) {
+      var col = cell.owner ? sideColors[cell.owner] : null;
+      // 沙色地形会吃掉低饱和阵营色；控制格略提亮并提高 alpha，中立格保持灰。
+      if (col) {
+        var lit = col.clone().lerp(new THREE.Color(0xffffff), 0.12);
+        g.fillStyle = battlePaintRgba(lit, 0.54);
+      } else {
+        g.fillStyle = "rgba(82,96,104,.32)";
+      }
+      g.fillRect(cell.c * cellW + 0.5, cell.r * cellH + 0.5, cellW - 1, cellH - 1);
+      // 正在被占领：owner 仍是旧阵营/中立，用底部进度条 + 细边提示，
+      // 不提前把整格染成占领方颜色。
+      if (cell.controlSide && cell.owner !== cell.controlSide && cell.control > 0.02) {
+        var cc = sideColors[cell.controlSide];
+        if (cc) {
+          g.fillStyle = battlePaintRgba(cc, 0.78);
+          g.fillRect(cell.c * cellW + 3, cell.r * cellH + cellH - 6,
+            Math.max(1, (cellW - 6) * cell.control), 3);
+          g.strokeStyle = battlePaintRgba(cc, 0.55);
           g.lineWidth = 1;
-          g.strokeRect(i * cellW + 1, r * cellH + 1, cellW - 2, cellH - 2);
+          g.strokeRect(cell.c * cellW + 1.5, cell.r * cellH + 1.5, cellW - 3, cellH - 3);
         }
       }
-    }
-    g.strokeStyle = "rgba(240,232,210,.16)";
+    });
+
+    // 控制区边界：相邻格 owner 不同时描一条亮边，读起来像“阵线”而不是
+    // 一格一格的调色板。
+    g.lineWidth = 1.6;
+    B.gridCells.forEach(function (cell) {
+      var x = cell.c * cellW, y = cell.r * cellH;
+      var right = cell.c + 1 < G.cols ? B.gridCells[cell.r * G.cols + cell.c + 1] : null;
+      var down = cell.r + 1 < G.rows ? B.gridCells[(cell.r + 1) * G.cols + cell.c] : null;
+      g.strokeStyle = "rgba(250,242,218,.62)";
+      if (right && right.owner !== cell.owner) {
+        g.beginPath(); g.moveTo((cell.c + 1) * cellW, y); g.lineTo((cell.c + 1) * cellW, y + cellH); g.stroke();
+      }
+      if (down && down.owner !== cell.owner) {
+        g.beginPath(); g.moveTo(x, (cell.r + 1) * cellH); g.lineTo(x + cellW, (cell.r + 1) * cellH); g.stroke();
+      }
+    });
+
+    g.strokeStyle = "rgba(240,232,210,.12)";
     g.lineWidth = 1;
     for (var x = 0; x <= G.cols; x++) {
       g.beginPath(); g.moveTo(x * cellW, 0); g.lineTo(x * cellW, ch); g.stroke();
@@ -1380,19 +1663,27 @@
     g.strokeStyle = "rgba(240,232,210,.3)";
     g.lineWidth = 2;
     g.strokeRect(1, 1, cw - 2, ch - 2);
+
     B.gridTexture.needsUpdate = true;
+    B.gridDirty = false;
+    B.lastGridPaint = B.time;
+    B.gridStats = battleGridStats(B);
   }
 
+  // 只创建“固定格子”的几何/纹理容器；owner 与 control 状态在
+  // battleInitGrid 里初始化，在 battleGridTick 里推进。格子坐标由
+  // cols/rows/width/depth 决定，和单位当前位置无关。
   function battleBuildGrid(B) {
     var T = B.terrain;
     var cfg = B.data.grid || {};
     var width = T ? T.width : 92, depth = T ? T.depth : 74;
     var cols = Math.max(8, Math.min(40, cfg.cols || 20));
     var rows = Math.max(6, Math.min(32, cfg.rows || 16));
-    var cell = Math.min(width / cols, depth / rows);
+    var cellW = width / cols, cellH = depth / rows;
     B.gridCfg = {
-      cols: cols, rows: rows, width: width, depth: depth,
-      captureRadius: cfg.captureRadius == null ? cell * 2.4 : cfg.captureRadius
+      cols: cols, rows: rows, width: width, depth: depth, cellW: cellW, cellH: cellH,
+      captureRadius: cfg.captureRadius == null ? Math.min(cellW, cellH) * 2.4 : cfg.captureRadius,
+      captureTime: cfg.captureTime == null ? 3.2 : Math.max(1, cfg.captureTime)
     };
     var cw = 768, ch = Math.round((cw * depth) / width);
     var c = document.createElement("canvas"); c.width = cw; c.height = ch;
@@ -1418,6 +1709,116 @@
     B.gridMesh = mesh;
   }
 
+  function battlePlaceName(B) {
+    var raw = B.data.text && B.data.text.place ? String(B.data.text.place) : "";
+    return raw.split("（")[0].split("、")[0].trim();
+  }
+
+  function battleDefaultLandmarks(B) {
+    var place = battlePlaceName(B);
+    var preset = B.data.preset || "field";
+    var out = [];
+    if (preset === "siege") {
+      out.push({ name: (place || "城") + "城门", x: -14, z: 11, kind: "gate", side: 1 });
+      out.push({ name: "城墙", x: 22, z: 8, kind: "wall", side: 1 });
+      out.push({ name: "攻方营地", x: -13, z: -19, kind: "camp", side: 0 });
+    } else if (preset === "river") {
+      out.push({ name: (place || "河") + "河岸", x: 18, z: 9, kind: "riverbank", side: 1 });
+      out.push({ name: "渡口 / 浮桥", x: -18, z: 1, kind: "bridge" });
+      out.push({ name: "攻方营地", x: 12, z: -19, kind: "camp", side: 0 });
+    } else if (preset === "ambush") {
+      out.push({ name: "谷口", x: -10, z: -9, kind: "pass" });
+      out.push({ name: "伏兵区", x: -20, z: 9, kind: "ambush", side: 1 });
+      out.push({ name: "伏兵区", x: 20, z: 9, kind: "ambush", side: 1 });
+      if (place) out.push({ name: place + "道", x: 0, z: -20, kind: "road" });
+    } else if (preset === "cavalry") {
+      out.push({ name: (place || "战场") + "战场", x: 0, z: 12, kind: "battlefield" });
+      out.push({ name: "左翼骑兵", x: -20, z: -8, kind: "cavalry", side: 0 });
+      out.push({ name: "右翼骑兵", x: 20, z: -8, kind: "cavalry", side: 1 });
+    } else {
+      out.push({ name: (place || "战场") + "战场", x: 0, z: 12, kind: "battlefield" });
+      out.push({ name: "攻方营地", x: -12, z: -19, kind: "camp", side: 0 });
+      out.push({ name: "守方营地", x: 12, z: 19, kind: "camp", side: 1 });
+    }
+    return out;
+  }
+
+  function battleLandmarkColor(kind, side) {
+    if (side && side.color) return side.color;
+    switch (kind) {
+      case "gate": case "wall": case "city": return "#d8b56a";
+      case "ford": case "bridge": case "riverbank": return "#7fc8c0";
+      case "pass": case "ambush": return "#d98a5f";
+      case "camp": return "#b8a06a";
+      case "battlefield": return "#e07a5f";
+      default: return "#d8b56a";
+    }
+  }
+
+  function makeBattleLandmarkSprite(name, color) {
+    var c = document.createElement("canvas");
+    c.width = 384; c.height = 112;
+    var x = c.getContext("2d");
+    var text = String(name || "地标");
+    var fs = 32;
+    x.font = "600 " + fs + "px 'Microsoft YaHei', 'PingFang SC', sans-serif";
+    var tw = x.measureText(text).width;
+    if (tw > 280) {
+      fs = 26;
+      x.font = "600 " + fs + "px 'Microsoft YaHei', 'PingFang SC', sans-serif";
+      tw = x.measureText(text).width;
+    }
+    var w = Math.max(160, Math.min(372, tw + 90));
+    var left = (384 - w) / 2;
+    x.clearRect(0, 0, 384, 112);
+    x.fillStyle = "rgba(5,13,11,.84)";
+    roundRect(x, left, 18, w, 76, 18); x.fill();
+    x.strokeStyle = color; x.lineWidth = 2.5;
+    roundRect(x, left, 18, w, 76, 18); x.stroke();
+    x.fillStyle = color;
+    x.beginPath(); x.arc(left + 34, 56, 9, 0, Math.PI * 2); x.fill();
+    x.fillStyle = "#f6edd8";
+    x.font = "600 " + fs + "px 'Microsoft YaHei', 'PingFang SC', sans-serif";
+    x.textAlign = "left"; x.textBaseline = "middle";
+    x.fillText(text, left + 54, 57);
+    var tex = new THREE.CanvasTexture(c);
+    tex.anisotropy = Math.min(8, S.renderer.capabilities.getMaxAnisotropy());
+    var mat = new THREE.SpriteMaterial({
+      map: tex, transparent: true, depthTest: false, depthWrite: false, opacity: 0.94
+    });
+    var sp = new THREE.Sprite(mat);
+    sp.scale.set((w / 384) * 8.6, 8.6 * 112 / 384, 1);
+    sp.renderOrder = 7;
+    return sp;
+  }
+
+  // 地标是“战场可读性”层，不参与控制计算：Sprite 贴地 + 地面环，
+  // 名称优先取 battle.landmarks；没有数据时按 preset 生成默认示意地标。
+  // side 只影响描边颜色，不改变 owner；图层名 landmarks（界面“地标”）。
+  function battleBuildLandmarks(B) {
+    var group = new THREE.Group();
+    B.landmarkGroup = group;
+    S.root.add(group);
+    B.landmarks = [];
+    var defs = B.data.landmarks && B.data.landmarks.length ? B.data.landmarks : battleDefaultLandmarks(B);
+    defs.forEach(function (d) {
+      if (!d || !isFinite(d.x) || !isFinite(d.z)) return;
+      var side = d.side == null ? null : battleSide(B.data, d.side);
+      var color = battleLandmarkColor(d.kind, side);
+      var y = B.terrain ? B.terrain.heightAtXZ(d.x, d.z) : 0;
+      var sp = makeBattleLandmarkSprite(d.name, color);
+      sp.position.set(d.x, y + 2.9, d.z);
+      group.add(sp);
+      var ring = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.68, 20),
+        new THREE.MeshBasicMaterial({ color: new THREE.Color(color), transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false }));
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.set(d.x, y + 0.14, d.z);
+      ring.renderOrder = 2;
+      group.add(ring);
+      B.landmarks.push({ def: d, sprite: sp, ring: ring });
+    });
+  }
+
   function battleRefreshHealth(B) {
     var t = B.time / (B.data.duration || 24);
     B.units.forEach(function (unit) {
@@ -1435,9 +1836,13 @@
     teardown();
     var B = {
       data: data, time: 0, speed: S.speed || 1, phaseIndex: -1,
-      units: [], unitGroup: null, labelGroup: null, terrain: null, clash: false,
+      units: [], unitDefs: null, sideIds: (data.sides || []).map(function (s) { return s.id; }),
+      unitGroup: null, labelGroup: null, landmarkGroup: null, landmarks: [],
+      terrain: null, clash: false,
       lastUI: -1, logSet: {}, gridMesh: null, gridCfg: null, gridCanvas: null,
-      gridCtx: null, gridTexture: null, lastHealthT: 0, lastGridT: 0
+      gridCtx: null, gridTexture: null, gridCells: null, gridDirty: true,
+      gridClock: 0, gridAcc: 0, gridStats: null, lastGridPaint: -1,
+      lastHealthT: 0
     };
     S.battle = B;
     var scene = new THREE.Scene();
@@ -1512,12 +1917,13 @@
     else if (data.preset === "river") battleAddRiver(root, T);
     else if (data.preset === "ambush") battleAddRocks(root, T);
 
+    B.unitDefs = data.units || battlePresetUnits(data);
     battleBuildGrid(B);
     B.unitGroup = new THREE.Group();
     root.add(B.unitGroup);
     B.labelGroup = new THREE.Group();
     root.add(B.labelGroup);
-    var defs = data.units || battlePresetUnits(data);
+    var defs = B.unitDefs;
     defs.forEach(function (d, i) {
       var side = battleSide(data, d.side);
       var form = HS.figures.buildFormation({
@@ -1548,11 +1954,12 @@
       B.units.push(unit);
     });
 
+    battleBuildLandmarks(B);
+    battleInitGrid(B);       // 初始 owner 只看出生位置/城墙/河岸，不看当前位置
     battlePlaceUnits(B, 0);
-    paintBattleGrid(B);
+    paintBattleGrid(B);      // 首帧一次性上传初始控制区纹理
     battleRefreshHealth(B);
     B.lastHealthT = 0;
-    B.lastGridT = 0;
 
     resize();
     applyViewOffset();
@@ -1626,7 +2033,17 @@
 
   function battleStep(B, dt) {
     var dur = B.data.duration || 24;
+    var before = B.time;
     B.time = Math.min(dur, B.time + dt);
+    // 捕获状态在固定 0.1s 的 gridClock 上推进；渲染仍按 B.time 平滑。
+    // 这样 1x/4x、restart、goToPhase 在同一时间点得到同一控制区。
+    B.gridAcc += B.time - before;
+    var tick = 0.1, guard = 0;
+    while (B.gridAcc >= tick && B.gridClock < dur && guard++ < 40) {
+      B.gridClock = Math.min(dur, B.gridClock + tick);
+      battleGridTick(B, tick);
+      B.gridAcc -= tick;
+    }
     if (B.time >= dur) {
       S.playing = false;
       if (HS.ui && HS.ui.setWarPlaying) HS.ui.setWarPlaying(false);
@@ -1651,8 +2068,8 @@
       B.lastHealthT = B.time;
       battleRefreshHealth(B);
     }
-    if (B.time < B.lastGridT || B.time - B.lastGridT >= 0.24) {
-      B.lastGridT = B.time;
+    // 只有控制状态变化（gridDirty）才重绘；0.24s 节流，避免每帧上传纹理。
+    if (B.gridDirty && (B.lastGridPaint < 0 || B.time - B.lastGridPaint >= 0.24)) {
       paintBattleGrid(B);
     }
     if (t > 0.52 && !B.clash) { B.clash = true; battleSpawnFx(B); }
@@ -2286,6 +2703,7 @@
       var b = S.battle;
       if (name === "units" && b.unitGroup) b.unitGroup.visible = !!on;
       else if (name === "labels" && b.labelGroup) b.labelGroup.visible = !!on;
+      else if (name === "landmarks" && b.landmarkGroup) b.landmarkGroup.visible = !!on;
       else if (name === "grid" && b.gridMesh) b.gridMesh.visible = !!on;
       if (HS.ui && HS.ui.setWarLayerBox) HS.ui.setWarLayerBox(name, on);
       return;
@@ -2331,9 +2749,15 @@
         progress: PB.t, speed: S.speed,
         grid: b.gridMesh ? {
           cols: b.gridCfg.cols, rows: b.gridCfg.rows,
-          captureRadius: b.gridCfg.captureRadius, visible: b.gridMesh.visible
+          captureRadius: b.gridCfg.captureRadius, captureTime: b.gridCfg.captureTime,
+          visible: b.gridMesh.visible, clock: b.gridClock,
+          counts: b.gridStats ? b.gridStats.sides : null,
+          neutral: b.gridStats ? b.gridStats.neutral : null,
+          total: b.gridStats ? b.gridStats.total : null
         } : null,
         unitsVisible: !!(b.unitGroup && b.unitGroup.visible),
+        landmarksVisible: !!(b.landmarkGroup && b.landmarkGroup.visible),
+        landmarkCount: b.landmarks ? b.landmarks.length : 0,
         labelsVisible: !!(b.labelGroup && b.labelGroup.visible),
         units: b.units.map(function (u) {
           var hp = battleHealth(b, u, PB.t);

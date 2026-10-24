@@ -76,8 +76,15 @@ code, .mono { font-family: Consolas, "SFMono-Regular", Menlo, monospace; font-si
 .lb-region.size-normal > span { font-size: 25px; }
 .lb-region.size-small > span { font-size: 18px; letter-spacing: 0.24em; }
 .lb-region.is-key > span { color: rgba(255, 246, 226, 0.72); }
-.lb-region.is-hl > span { color: #fff8e6; text-shadow: 0 0 14px rgba(0, 0, 0, 0.6), 0 0 2px rgba(0, 0, 0, 0.8); }
-.lb-region.is-dim > span { opacity: 0.45; }
+.lb-region.is-hl > span {
+  color: #fffdf4; font-weight: 600;
+  text-shadow: 0 0 18px rgba(0, 0, 0, 0.82), 0 0 3px rgba(0, 0, 0, 0.95), 0 0 28px var(--accent);
+}
+.lb-region.is-hl > span::after {
+  content: ""; display: block; width: 1.4em; height: 2px; margin: 7px auto 0;
+  background: currentColor; opacity: 0.7; box-shadow: 0 0 10px currentColor;
+}
+.lb-region.is-dim > span { opacity: 0.36; filter: saturate(0.65); }
 
 .lb-river > span {
   display: block; transform: translate(-50%, -50%);
@@ -172,6 +179,14 @@ code, .mono { font-family: Consolas, "SFMono-Regular", Menlo, monospace; font-si
 .now-no { padding: 3px 11px; border-radius: 999px; background: var(--accent); color: #fff; font: 600 13px var(--f-ui); }
 .now-date { color: var(--sand); font-size: 14px; letter-spacing: 0.04em; }
 .now-title { font: 600 19px var(--f-title); letter-spacing: 0.12em; color: #fff; overflow: hidden; text-overflow: ellipsis; }
+.now-region {
+  display: inline-flex; align-items: center; gap: 5px; flex: none;
+  padding: 2px 9px; border-radius: 999px; white-space: nowrap;
+  font: 600 12px var(--f-ui); color: var(--sand);
+  border: 1px solid rgba(220, 195, 145, 0.38); background: rgba(220, 195, 145, 0.08);
+}
+.now-region::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+.now-region.is-none { color: var(--muted); border-style: dashed; border-color: rgba(126, 140, 134, 0.5); background: rgba(126, 140, 134, 0.08); }
 #now.is-empty .now-no { background: var(--ink-3); color: var(--muted); }
 #now.is-empty .now-title { font: 14px var(--f-ui); letter-spacing: 0.04em; color: var(--paper-dim); }
 

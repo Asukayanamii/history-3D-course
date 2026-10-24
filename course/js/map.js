@@ -382,12 +382,21 @@
 
   /* ------------------------------------------------------------------ *
    * 势力覆盖层：按经纬度画到透明纹理，贴在与地形相同的几何上
+   *
+   * 语义：这里的 canvas 是“势力色块”的唯一来源，和边界 ribbon 分开。
+   * 不变量：draw() 改写 canvas 后必须把 texture.needsUpdate 置 true，
+   * 否则 WebGL 仍用上一帧上传的旧纹理；v0.4 改成 DEM 覆盖层后漏了这一步，
+   * 导致高亮切换只改了 canvas、屏幕上的色块却一直是空白。
+   * 坐标：p.x/p.z 是主沙盘世界坐标；canvas y 与 zNorth:"negative" 的地形 UV
+   * 方向一致（北在上），不要在这里再翻一次 z。
    * ------------------------------------------------------------------ */
   function paintRegionLayer(outlines, W, H) {
     var cw = 1024, ch = Math.round((cw * H) / W);
     var c = document.createElement("canvas");
     c.width = cw; c.height = ch;
     var g = c.getContext("2d");
+    var tex = new THREE.CanvasTexture(c);
+    tex.anisotropy = Math.min(8, HS.stage.renderer.capabilities.getMaxAnisotropy());
     function draw(highlightId) {
       g.clearRect(0, 0, cw, ch);
       outlines.forEach(function (o) {
@@ -403,14 +412,15 @@
         var col = new THREE.Color(r.color || "#888");
         g.fillStyle = "rgba(" + Math.round(col.r * 255) + "," + Math.round(col.g * 255) + "," + Math.round(col.b * 255) + "," + U.clamp(alpha, 0, 0.9).toFixed(3) + ")";
         g.fill();
-        var lite = col.clone().lerp(new THREE.Color(0xfff6e0), 0.38);
-        g.strokeStyle = "rgba(" + Math.round(lite.r * 255) + "," + Math.round(lite.g * 255) + "," + Math.round(lite.b * 255) + ",0.5)";
-        g.lineWidth = 2;
+        var hot = !!(highlightId && r.id === highlightId);
+        var lite = col.clone().lerp(new THREE.Color(0xfff6e0), hot ? 0.72 : 0.38);
+        var lineAlpha = hot ? 0.95 : (highlightId ? 0.32 : 0.5);
+        g.strokeStyle = "rgba(" + Math.round(lite.r * 255) + "," + Math.round(lite.g * 255) + "," + Math.round(lite.b * 255) + "," + lineAlpha + ")";
+        g.lineWidth = hot ? 3.6 : 2;
         g.stroke();
       });
+      tex.needsUpdate = true;
     }
-    var tex = new THREE.CanvasTexture(c);
-    tex.anisotropy = Math.min(8, HS.stage.renderer.capabilities.getMaxAnisotropy());
     return { canvas: c, texture: tex, draw: draw };
   }
 
@@ -692,6 +702,7 @@
     var regionPaint = null;
     if (DEM_ID) {
       regionPaint = paintRegionLayer(outlines, W, H);
+      regionPaint.draw(""); // 先画一次空高亮，避免首屏/主题切换时色块纹理是空白
       var regionGeo = TERRAIN.geometry.clone();
       regionGeo.translate(0, 0.06, 0);
       var regionMesh = new THREE.Mesh(regionGeo, new THREE.MeshBasicMaterial({
@@ -719,9 +730,24 @@
         regionGroup.add(fill);
       }
 
-      var lineMat = new THREE.MeshBasicMaterial({ color: lighten(r.color || "#888", 0.38), transparent: true, opacity: 0.8, depthWrite: false });
-      var dense = densify(o.poly, 0.32, true);
-      var line = new THREE.Mesh(ribbon(dense, r.highlight ? 0.34 : 0.22, true, 0.1, TERRAIN ? TERRAIN.heightAtXZ : null), lineMat);
+      // 边界 ribbon 必须 DoubleSide：ribbon 的三角形绕序由多边形方向决定，
+      // 单面材质从沙盘上方看会被背面剔除，表现为“边界完全消失”。
+      var lineMat = new THREE.MeshBasicMaterial({
+        color: lighten(r.color || "#888", 0.46), transparent: true, opacity: 0.8,
+        depthWrite: false, side: THREE.DoubleSide
+      });
+      var dense = densify(o.poly, 0.22, true);
+      var hAt = TERRAIN ? TERRAIN.heightAtXZ : null;
+      var half = r.highlight ? 0.5 : 0.32;
+      // 竖向抬高 0.16，避开 DEM 三角面与等高线覆盖层；再垫一条加法混合的宽光带，
+      // 让 1920/1366 的远景也能分辨边界，而不是只靠 1–2 像素的细线。
+      var glow = new THREE.Mesh(ribbon(dense, half * 2.6, true, 0.1, hAt), new THREE.MeshBasicMaterial({
+        color: lighten(r.color || "#888", 0.6), transparent: true, opacity: 0.08,
+        depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending
+      }));
+      glow.renderOrder = 3;
+      regionGroup.add(glow);
+      var line = new THREE.Mesh(ribbon(dense, half, true, 0.16, hAt), lineMat);
       line.renderOrder = 4;
       regionGroup.add(line);
 
@@ -730,7 +756,11 @@
       var ly = TERRAIN ? TERRAIN.heightAtLonLat(r.labelAt[0], r.labelAt[1]) + 0.3 : 0.3;
       var item = HS.labels.add({ el: lbl, pos: P.vec(r.labelAt[0], r.labelAt[1], ly), layer: "regions", priority: 1, scaleWithDist: false });
       api.labels.push(item);
-      api.regions[r.id] = { data: r, fill: fill, line: line, label: lbl, baseOp: r.opacity != null ? r.opacity : 0.42, op: r.opacity != null ? r.opacity : 0.42, lineOp: 0.8, target: 1 };
+      api.regions[r.id] = {
+        data: r, fill: fill, line: line, glow: glow, label: lbl,
+        baseOp: r.opacity != null ? r.opacity : 0.42, op: r.opacity != null ? r.opacity : 0.42,
+        lineOp: 0.8, glowOp: 0.08, target: 1
+      };
     });
 
     /* ---- 河流 ---- */
@@ -773,10 +803,24 @@
       api.labels.push(HS.labels.add({ el: lb, pos: P.vec(pl.lon, pl.lat, py), layer: "places", priority: pl.kind === "capital" ? 5 : 3, anchor: "left" }));
     });
 
-    /* ---- 高亮 ---- */
+    /* ------------------------------------------------------------------ *
+     * 高亮链路（完整数据流，改这里前先读一遍）：
+     *
+     *   theme.events[].regionId
+     *     -> main.goTo() 调用 st.map.highlight(ev.regionId)
+     *     -> api.highlight 设置 api.current / 每区 target
+     *     -> regionPaint.draw(current) 重画色块 canvas（必须 needsUpdate）
+     *     -> API.update 每帧插值：色块 alpha、边界 lineOp 脉冲、光带 glowOp
+     *     -> DOM 标签切换 .is-hl / .is-dim（app.css 控制字号、颜色、透明度）
+     *
+     * 空 regionId 表示“该事件没有单一政权可高亮”（例如 907/923 的事件，
+     * 当时的主角后梁/后唐不在 955 年地图快照里）。此时不能静默什么都不做：
+     * 取消所有 dim、恢复默认色块，并由 main/ui 在事件胶囊显示明确提示。
+     * 未知 regionId 按空值处理，避免拼写错误时只亮一半。
+     * ------------------------------------------------------------------ */
     function repaintRegions() { if (regionPaint) regionPaint.draw(api.current || ""); }
     api.highlight = function (regionId) {
-      var has = regionId && api.regions[regionId];
+      var has = !!(regionId && api.regions[regionId]);
       Object.keys(api.regions).forEach(function (id) {
         var R = api.regions[id];
         R.target = !has ? 1 : id === regionId ? 1.55 : 0.55;
@@ -785,6 +829,7 @@
       });
       api.current = has ? regionId : "";
       repaintRegions();
+      return api.current;
     };
 
     api.update = function (dt, t) {
@@ -796,9 +841,13 @@
           R.op = U.lerp(R.op, goal, k);
           R.fill.material.opacity = R.op;
         }
-        var lineGoal = id === api.current ? 0.75 + 0.25 * Math.sin(t * 3.2) : R.target < 1 ? 0.4 : 0.8;
+        var active = id === api.current;
+        var lineGoal = active ? 0.78 + 0.22 * Math.sin(t * 3.2) : R.target < 1 ? 0.3 : 0.72;
         R.lineOp = U.lerp(R.lineOp, lineGoal, k * 2);
         R.line.material.opacity = R.lineOp;
+        var glowGoal = active ? 0.16 + 0.1 * Math.sin(t * 3.2) : R.target < 1 ? 0.015 : 0.06;
+        R.glowOp = U.lerp(R.glowOp, glowGoal, k * 2);
+        R.glow.material.opacity = R.glowOp;
       });
       if (api.vignette && api.vignette.userData.update) api.vignette.userData.update(t);
     };
