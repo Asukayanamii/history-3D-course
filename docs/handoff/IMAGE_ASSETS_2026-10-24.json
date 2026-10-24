@@ -1,0 +1,171 @@
+{
+  "updated": "2026-10-24",
+  "workflow": "Bundled imagegen CLI using user-selected cctq.ai endpoint; gpt-image-2 requested for generation and seam editing. Gateway model identity is not independently verifiable.",
+  "assets": [
+    {
+      "path": "course/assets/events/wudai/e11.jpg",
+      "generated": "2026-10-23",
+      "model_requested": "gpt-image-2",
+      "endpoint": "https://www.cctq.ai/v1",
+      "mode": "generate",
+      "prompt": "Use case: historical-scene\nAsset type: 1920x1080 course event illustration\nPrimary request: Monumental historical reconstruction of a Five Dynasties (955 CE) Later Zhou court council in Bianzhou, emperor Chai Rong seated at a simple wooden throne, civil officials in futou caps and round-collar robes, a general in lamellar armor, wooden pillars, curtains, a dark green screen, candles and an incense burner, rolled documents without legible writing, cold winter morning light with a few warm candle accents, symmetrical medium-wide composition, low saturated mineral pigments, aged silk and ink-wash texture, restrained historical realism.\nComposition/framing: centered symmetrical medium-wide 16:9 interior, dark beams above, subjects shown as roles with no identifiable facial likeness.\nLighting/mood: cold blue-grey winter morning with restrained warm candlelight.\nConstraints: no text, no calligraphy, no readable documents, no banners with writing, no watermark, no logo, no modern objects, no Ming/Qing palace, no yellow glazed tiles, no Japanese samurai armor, no European medieval armor, no anime, no cartoon, no 3D render, no identifiable real faces, no gore, no exposed wounds, no dismemberment. Historical reconstruction, not a photograph.",
+      "returned_size": [
+        1665,
+        945
+      ],
+      "final_size": [
+        1920,
+        1080
+      ],
+      "source_sha256": "e5e723bba9f1ea6583dde590c52164ad19df7dc5344efdbf11cbc859ea00691e",
+      "sha256": "71e6276654ffa1e4bec7a536e7666397b65ea57ce5a8a1bae308dc67c3e5796a",
+      "bytes": 373366,
+      "jpeg_quality": 90,
+      "processing": "Centered crop from 1665x945 to exact 16:9 1664x936, uniform Lanczos upscale; sRGB progressive JPEG."
+    },
+    {
+      "path": "course/assets/vr/wudai/e06.jpg",
+      "generated": "2026-10-24",
+      "model_requested": "gpt-image-2",
+      "endpoint": "https://www.cctq.ai/v1",
+      "mode": "generate + masked seam edit",
+      "requested_size": "3840x1920",
+      "returned_size": [
+        1774,
+        887
+      ],
+      "final_size": [
+        4096,
+        2048
+      ],
+      "prompt": "Create a FULL SPHERICAL EQUIRECTANGULAR ENVIRONMENT MAP, latitude-longitude projection, 360 degrees horizontal by 180 degrees vertical, 2:1 rectangular texture for the INSIDE of a VR sphere. This projection is essential. Camera at human eye height inside a 954 CE Shanxi valley at the Battle of Gaoping. Every longitude is equally spaced; y=0 is zenith directly overhead, y=0.5 is level horizon, y=1 is nadir directly underneath. Entire upper half depicts sky all the way overhead; entire lower half depicts the surrounding ground down to the camera's feet, ground becomes horizontally stretched near the bottom pole as required by lat-long mapping. The first and last columns look in the SAME rearward direction and MUST align seamlessly. View covers the complete surroundings around ONE fixed viewpoint: at horizontal center (front) a modest Later Zhou infantry shield wall; at quarter-left a small command group on a hillside; at quarter-right distant Northern Han / Khitan horsemen; both far edges show the SAME continuous quiet empty rear valley, river mist and mountains. No foreground people or structures touching either image edge. All figures modest scale near the horizon, leaving overhead sky and ground underneath to establish full spherical coverage. Early spring dawn, muted mineral pigments, ink wash on aged silk, restrained historical reconstruction illustration. Period futou hats, round collar robes, Chinese tenth-century lamellar armor, spears, swords and shields, plain unmarked cloth pennants only. NO panoramic wide-angle photograph composition, NO rectilinear perspective, NO fisheye circle, NO narrow strip of landscape stretched vertically, NO mirror copies, NO text or writing of any kind, NO insignia, no maps or labels, no watermark, no logo, no Ming/Qing palace or yellow glazed roofs, no Japanese samurai or European knights, no firearms, no gore, no real-person likeness. Output only one complete 2:1 equirectangular spherical texture.",
+      "seam_edit_prompt": "Use case: precise-object-edit\nEdit target: this is a longitude-rotated complete 360x180-degree spherical equirectangular panorama. The original left-right boundary has been moved to the middle of this input for repair. Modify ONLY the narrow transparent vertical strip of the provided mask, where a join runs vertically down the image center. Preserve all other content, subject locations, colors, atmosphere, and equirectangular projection exactly. Within the strip, reconstruct physically continuous surrounding scenery that naturally connects to the intact textures on both sides. Continue existing shapes and contours, clouds/ceiling above, horizon at exactly 50%, ground/floor below; remove vertical brightness boundaries, jagged horizon steps, split doors, or terrain discontinuities. This region is the rear environment, do not add a new emperor, army, castle or any focal subject. Preserve all visible nonmasked soldiers, officials, buildings, and empty overhead/underfoot areas. Maintain the full 2:1 latitude-longitude spherical map, 360 degrees horizontally and 180 vertically. NO text, no characters, no calligraphy, no labels, no symbols, no new banners, no watermark, no logo, no modern elements, no gore, no Ming/Qing palaces, no samurai or European knights. Output one seamless equirectangular environment texture, same orientation as the input. Do not rotate or crop the image.",
+      "source_sha256": "235c4aa8a410dea0ab7d492429409c13fb6bbeb7549628ecbdee95fa0eed4130",
+      "seam_edit_sha256": "5af5fa1cb16c38615e11f3a11726ab0c19a0efda49cf4723d493654e0e5ac74a",
+      "sha256": "28f797b8e008df4c7bd5c1fd4edcb3b7f6e7369d8c6a4ceab2e644908e39ab33",
+      "bytes": 1134349,
+      "jpeg_quality": 89,
+      "processing": "Native 2:1 full-sphere generation; half-turn solely for masked rear-seam inpainting; composite only masked strip (13% total width; 32px feather); undo half-turn; horizontal periodic-plus-smooth illumination correction; uniform Lanczos 4096x2048 upscale; embed sRGB ICC, progressive JPEG. No 16:9 input, no anisotropic stretch, no mirrored panorama expansion. Not native 4K."
+    },
+    {
+      "path": "course/assets/vr/wudai/e11.jpg",
+      "generated": "2026-10-24",
+      "model_requested": "gpt-image-2",
+      "endpoint": "https://www.cctq.ai/v1",
+      "mode": "generate + masked seam edit",
+      "requested_size": "3840x1920",
+      "returned_size": [
+        1774,
+        887
+      ],
+      "final_size": [
+        4096,
+        2048
+      ],
+      "prompt": "Create a FULL SPHERICAL EQUIRECTANGULAR ENVIRONMENT MAP, latitude-longitude projection, 360 degrees horizontal by 180 degrees vertical, 2:1 rectangular texture for the INSIDE of a VR sphere. Essential geometric requirement: one fixed camera at human eye height in the CENTER of a simple rectangular Chinese tenth-century wooden court hall, not near an entrance. At x=0.5 front wall has a small wooden throne and dark green screen with emperor Chai Rong, 955 CE Bianzhou. At x=0.25 left side wall has civil officials in futou hats and round collar robes. At x=0.75 right side wall has other officials and a guard in Chinese lamellar armor. At x=0 and x=1, BOTH edges show the SAME rear entry wall and doorway behind the viewer, continuing seamlessly across the boundary. All FOUR different walls are visible in this single unwrapped sphere texture. Full ceiling directly overhead at top pole, timber beams curve across the lat-long image; full floor directly beneath camera at bottom pole stretches horizontally, horizon at exact 50% height. This is NOT a wide-angle view facing a throne: the full 360-degree surround is unwrapped, with rear wall split across image edges and both side walls in between. Figures small near equator and not at seam; top quarter mainly dark timber ceiling, bottom quarter mainly empty stone floor. Simple timber columns, curtains, candles, incense burner, blank rolled documents. Cold winter morning, warm candle accents, muted mineral pigment illustration, aged silk ink wash, restrained historical reconstruction, no photo or 3D-render aesthetic. NO text, no Chinese characters, no calligraphy, no written documents, no labels, no insignia, no watermark or signature, no yellow glazed roofs, no Ming/Qing imperial palace, no samurai, no European knights, no modern objects, no gore, no identifiable real faces, no fisheye circle, no poster framing, no duplicate front wall. Output only one complete 2:1 spherical equirectangular texture.",
+      "seam_edit_prompt": "Use case: precise-object-edit\nEdit target: this is a longitude-rotated complete 360x180-degree spherical equirectangular panorama. The original left-right boundary has been moved to the middle of this input for repair. Modify ONLY the narrow transparent vertical strip of the provided mask, where a join runs vertically down the image center. Preserve all other content, subject locations, colors, atmosphere, and equirectangular projection exactly. Within the strip, reconstruct physically continuous surrounding scenery that naturally connects to the intact textures on both sides. Continue existing shapes and contours, clouds/ceiling above, horizon at exactly 50%, ground/floor below; remove vertical brightness boundaries, jagged horizon steps, split doors, or terrain discontinuities. This region is the rear environment, do not add a new emperor, army, castle or any focal subject. Preserve all visible nonmasked soldiers, officials, buildings, and empty overhead/underfoot areas. Maintain the full 2:1 latitude-longitude spherical map, 360 degrees horizontally and 180 vertically. NO text, no characters, no calligraphy, no labels, no symbols, no new banners, no watermark, no logo, no modern elements, no gore, no Ming/Qing palaces, no samurai or European knights. Output one seamless equirectangular environment texture, same orientation as the input. Do not rotate or crop the image.",
+      "source_sha256": "ee661a3e12258d0280cc02edd0faf9321f8e41c28adc8cfc7a9fa5f93b71ac66",
+      "seam_edit_sha256": "dfb48e9c07ea6fdcc22f1d662c8a77aa79d873a1d420a97a46370a761a6ff9e2",
+      "sha256": "9634883f520362befafd5b08d094564d8e30e4c371a23d86d3e552716f09ad7c",
+      "bytes": 1125663,
+      "jpeg_quality": 90,
+      "processing": "Native 2:1 full-sphere generation; half-turn solely for masked rear-seam inpainting; composite only masked strip (13% total width; 32px feather); undo half-turn; horizontal periodic-plus-smooth illumination correction; uniform Lanczos 4096x2048 upscale; embed sRGB ICC, progressive JPEG. No 16:9 input, no anisotropic stretch, no mirrored panorama expansion. Not native 4K."
+    },
+    {
+      "path": "course/assets/vr/wudai/e07.jpg",
+      "generated": "2026-10-24",
+      "model_requested": "gpt-image-2",
+      "endpoint": "https://www.cctq.ai/v1",
+      "mode": "generate + masked seam edit",
+      "requested_size": "3840x1920",
+      "returned_size": [
+        1774,
+        887
+      ],
+      "final_size": [
+        4096,
+        2048
+      ],
+      "prompt": "Create a FULL SPHERICAL EQUIRECTANGULAR ENVIRONMENT MAP, latitude-longitude projection, 360 degrees horizontal by 180 degrees vertical, 2:1 rectangular texture for the INSIDE of a VR sphere. This geometric projection is essential. One stationary camera at human eye height. y=0 is zenith directly overhead, y=0.5 is the level horizon, y=1 is nadir directly underneath. Upper half depicts full overhead sky, lower half depicts surrounding ground/water down to the camera's feet; natural horizontal polar stretching towards the very top and bottom as required by lat-long projection. The first and last columns look in the SAME rearward direction and MUST join seamlessly in geometry, color and lighting. Small figures near the equator; distant landmarks spread around the entire circle, nothing important touching the seam. No image-wide single vanishing point. This is the unwrapped COMPLETE surroundings of ONE viewpoint, not a wide-angle picture or a poster. Scene: 955-958 CE Later Zhou siege of Shouzhou, late autumn rainy night. The camera stands on a muddy Huai River bank. At x=0.5 ahead is Shouzhou earth-and-brick wall and timber gate tower; x=0.25 left is river water with a pontoon bridge and low war boats; x=0.75 right is a small Later Zhou military camp with timber traction siege engines, shields and period Chinese lamellar armor; x=0 and x=1 behind the camera show the SAME empty dark riverbank, water, reeds and clouded sky, with matching continuous silhouettes. Rain mist, cold dark blue air with warm torch accents. Architecture and armies remain in a modest-height equatorial band. Top quarter only overhead storm clouds; bottom quarter only wet ground around viewer. No large person or tent at seam.  Muted mineral pigments, azurite blue, malachite, ochre, small warm light accents, aged silk and ink wash texture, restrained historical reconstruction illustration, not a photograph. Plain unmarked cloth pennants only. NO text or Chinese characters, NO readable documents, NO calligraphy, NO writing or insignia on flags, NO labels or maps, NO watermark or logo, no modern objects, no firearms or cannons, no explosions or gore, no exposed wounds, no recognizable real faces, no Japanese samurai armor, no European knights, no Ming/Qing palace or yellow glazed roofs, no Qing queue, no fantasy armor, no anime or 3D-render aesthetic, no fisheye circle, no border, no mirrored duplicate army, no visible stitching or disconnected horizon. Output only one seamless 2:1 lat-long spherical panorama.",
+      "seam_edit_prompt": "Use case: precise-object-edit\nEdit target: this is a longitude-rotated complete 360x180-degree spherical equirectangular panorama. The original left-right boundary has been moved to the middle of this input for repair. Modify ONLY the narrow transparent vertical strip of the provided mask, where a join runs vertically down the image center. Preserve all other content, subject locations, colors, atmosphere, and equirectangular projection exactly. Within the strip, reconstruct physically continuous surrounding scenery that naturally connects to the intact textures on both sides. Continue existing shapes and contours, clouds/ceiling above, horizon at exactly 50%, ground/floor below; remove vertical brightness boundaries, jagged horizon steps, split doors, or terrain discontinuities. This region is the rear environment, do not add a new emperor, army, castle or any focal subject. Preserve all visible nonmasked soldiers, officials, buildings, and empty overhead/underfoot areas. Maintain the full 2:1 latitude-longitude spherical map, 360 degrees horizontally and 180 vertically. NO text, no characters, no calligraphy, no labels, no symbols, no new banners, no watermark, no logo, no modern elements, no gore, no Ming/Qing palaces, no samurai or European knights. Output one seamless equirectangular environment texture, same orientation as the input. Do not rotate or crop the image.",
+      "source_sha256": "d3669700390b86bdcb31f431cfcd6c4077b85befbc876a445a366ca2e3768eaa",
+      "seam_edit_sha256": "0306b310b3708f72b8756bcd11fd2cb14cf0bb7cf3e67fa7fc4cd3e5d01ea366",
+      "sha256": "bdccc2df8018fce35f45df64c4d2d03679a35f50485ccd260ce424e86522f18b",
+      "bytes": 1156064,
+      "jpeg_quality": 90,
+      "processing": "Native 2:1 full-sphere generation; half-turn solely for masked rear-seam inpainting; composite only masked strip (13% total width; 32px feather); undo half-turn; horizontal periodic-plus-smooth illumination correction; uniform Lanczos 4096x2048 upscale; embed sRGB ICC, progressive JPEG. No 16:9 input, no anisotropic stretch, no mirrored panorama expansion. Not native 4K."
+    },
+    {
+      "path": "course/assets/vr/wudai/e08.jpg",
+      "generated": "2026-10-24",
+      "model_requested": "gpt-image-2",
+      "endpoint": "https://www.cctq.ai/v1",
+      "mode": "generate + masked seam edit",
+      "requested_size": "3840x1920",
+      "returned_size": [
+        1774,
+        887
+      ],
+      "final_size": [
+        4096,
+        2048
+      ],
+      "prompt": "Create a FULL SPHERICAL EQUIRECTANGULAR ENVIRONMENT MAP, latitude-longitude projection, 360 degrees horizontal by 180 degrees vertical, 2:1 rectangular texture for the INSIDE of a VR sphere. This geometric projection is essential. One stationary camera at human eye height. y=0 is zenith directly overhead, y=0.5 is the level horizon, y=1 is nadir directly underneath. Upper half depicts full overhead sky, lower half depicts surrounding ground/water down to the camera's feet; natural horizontal polar stretching towards the very top and bottom as required by lat-long projection. The first and last columns look in the SAME rearward direction and MUST join seamlessly in geometry, color and lighting. Small figures near the equator; distant landmarks spread around the entire circle, nothing important touching the seam. No image-wide single vanishing point. This is the unwrapped COMPLETE surroundings of ONE viewpoint, not a wide-angle picture or a poster. Scene: 959 CE Waqiao Pass, autumn morning, Yan Mountains distant. The camera stands in open dry grassland near a low stone-and-earth border fort. At x=0.5 front is the gate and simple tenth-century timber tower, x=0.25 left is a modest group of advancing Later Zhou horsemen wearing tenth-century Chinese lamellar armor, x=0.75 right is distant receding Khitan cavalry, x=0 and x=1 behind show the SAME quiet dry grassland and distant continuous ridge. Cold golden morning illumination consistent all around, no second sun. Wind and restrained dust. Horsemen not close to camera; ground underneath empty. Sky directly overhead at top; dry ground around camera at bottom.  Muted mineral pigments, azurite blue, malachite, ochre, small warm light accents, aged silk and ink wash texture, restrained historical reconstruction illustration, not a photograph. Plain unmarked cloth pennants only. NO text or Chinese characters, NO readable documents, NO calligraphy, NO writing or insignia on flags, NO labels or maps, NO watermark or logo, no modern objects, no firearms or cannons, no explosions or gore, no exposed wounds, no recognizable real faces, no Japanese samurai armor, no European knights, no Ming/Qing palace or yellow glazed roofs, no Qing queue, no fantasy armor, no anime or 3D-render aesthetic, no fisheye circle, no border, no mirrored duplicate army, no visible stitching or disconnected horizon. Output only one seamless 2:1 lat-long spherical panorama.",
+      "seam_edit_prompt": "Use case: precise-object-edit\nEdit target: this is a longitude-rotated complete 360x180-degree spherical equirectangular panorama. The original left-right boundary has been moved to the middle of this input for repair. Modify ONLY the narrow transparent vertical strip of the provided mask, where a join runs vertically down the image center. Preserve all other content, subject locations, colors, atmosphere, and equirectangular projection exactly. Within the strip, reconstruct physically continuous surrounding scenery that naturally connects to the intact textures on both sides. Continue existing shapes and contours, clouds/ceiling above, horizon at exactly 50%, ground/floor below; remove vertical brightness boundaries, jagged horizon steps, split doors, or terrain discontinuities. This region is the rear environment, do not add a new emperor, army, castle or any focal subject. Preserve all visible nonmasked soldiers, officials, buildings, and empty overhead/underfoot areas. Maintain the full 2:1 latitude-longitude spherical map, 360 degrees horizontally and 180 vertically. NO text, no characters, no calligraphy, no labels, no symbols, no new banners, no watermark, no logo, no modern elements, no gore, no Ming/Qing palaces, no samurai or European knights. Output one seamless equirectangular environment texture, same orientation as the input. Do not rotate or crop the image.",
+      "source_sha256": "945554931fbe7cfe36523640ed1f80ca9d47f60a34abc65b364c73c91e1512b5",
+      "seam_edit_sha256": "f87c028fa2732084825c1816f7d1dbac71e68e81048ea682024c68e284a2f186",
+      "sha256": "4cd8b6405f74b779e3477779fc467d16d0e702f7a32b4812062011f5f0764ba4",
+      "bytes": 1180580,
+      "jpeg_quality": 87,
+      "processing": "Native 2:1 full-sphere generation; half-turn solely for masked rear-seam inpainting; composite only masked strip (13% total width; 32px feather); undo half-turn; horizontal periodic-plus-smooth illumination correction; uniform Lanczos 4096x2048 upscale; embed sRGB ICC, progressive JPEG. No 16:9 input, no anisotropic stretch, no mirrored panorama expansion. Not native 4K."
+    },
+    {
+      "path": "course/assets/vr/song/e03.jpg",
+      "generated": "2026-10-24",
+      "model_requested": "gpt-image-2",
+      "endpoint": "https://www.cctq.ai/v1",
+      "mode": "generate + masked seam edit",
+      "requested_size": "3840x1920",
+      "returned_size": [
+        1774,
+        887
+      ],
+      "final_size": [
+        4096,
+        2048
+      ],
+      "prompt": "Create a FULL SPHERICAL EQUIRECTANGULAR ENVIRONMENT MAP, latitude-longitude projection, 360 degrees horizontal by 180 degrees vertical, 2:1 rectangular texture for the INSIDE of a VR sphere. This geometric projection is essential. One stationary camera at human eye height. y=0 is zenith directly overhead, y=0.5 is the level horizon, y=1 is nadir directly underneath. Upper half depicts full overhead sky, lower half depicts surrounding ground/water down to the camera's feet; natural horizontal polar stretching towards the very top and bottom as required by lat-long projection. The first and last columns look in the SAME rearward direction and MUST join seamlessly in geometry, color and lighting. Small figures near the equator; distant landmarks spread around the entire circle, nothing important touching the seam. No image-wide single vanishing point. This is the unwrapped COMPLETE surroundings of ONE viewpoint, not a wide-angle picture or a poster. Scene: 1004 CE Chanzhou in winter dawn at the Yellow River ferry. The camera stands on a quiet muddy bank, not on a boat. At x=0.5 front is the modest Northern Song city gate tower across a misty inlet, x=0.25 left a pontoon bridge and low ferryboats, x=0.75 right a Northern Song infantry array in lamellar armor. Behind viewer at x=0 and x=1 is the SAME quiet riverbank and distant small camp, reeds and mist, matching continuously across seam. Cold blue-grey dawn with warm torch accents; blank fabric pennants only. All architecture, bridge and soldiers modest scale near the horizon, half the map overhead sky and half quiet bank and water around the camera.  Muted mineral pigments, azurite blue, malachite, ochre, small warm light accents, aged silk and ink wash texture, restrained historical reconstruction illustration, not a photograph. Plain unmarked cloth pennants only. NO text or Chinese characters, NO readable documents, NO calligraphy, NO writing or insignia on flags, NO labels or maps, NO watermark or logo, no modern objects, no firearms or cannons, no explosions or gore, no exposed wounds, no recognizable real faces, no Japanese samurai armor, no European knights, no Ming/Qing palace or yellow glazed roofs, no Qing queue, no fantasy armor, no anime or 3D-render aesthetic, no fisheye circle, no border, no mirrored duplicate army, no visible stitching or disconnected horizon. Output only one seamless 2:1 lat-long spherical panorama.",
+      "seam_edit_prompt": "Use case: precise-object-edit\nEdit target: this is a longitude-rotated complete 360x180-degree spherical equirectangular panorama. The original left-right boundary has been moved to the middle of this input for repair. Modify ONLY the narrow transparent vertical strip of the provided mask, where a join runs vertically down the image center. Preserve all other content, subject locations, colors, atmosphere, and equirectangular projection exactly. Within the strip, reconstruct physically continuous surrounding scenery that naturally connects to the intact textures on both sides. Continue existing shapes and contours, clouds/ceiling above, horizon at exactly 50%, ground/floor below; remove vertical brightness boundaries, jagged horizon steps, split doors, or terrain discontinuities. This region is the rear environment, do not add a new emperor, army, castle or any focal subject. Preserve all visible nonmasked soldiers, officials, buildings, and empty overhead/underfoot areas. Maintain the full 2:1 latitude-longitude spherical map, 360 degrees horizontally and 180 vertically. NO text, no characters, no calligraphy, no labels, no symbols, no new banners, no watermark, no logo, no modern elements, no gore, no Ming/Qing palaces, no samurai or European knights. Output one seamless equirectangular environment texture, same orientation as the input. Do not rotate or crop the image.",
+      "source_sha256": "a422abf2e8a43235144132a0e7752f5761dd7bb1bbe894ba2054299960d422f6",
+      "seam_edit_sha256": "a4a9716edb2e110314579e2367e3efba4c1d8063b2590403ecc6a7968440640b",
+      "sha256": "fc1691fc8f61fe5848901d3ac77c7a3e65cd8c6f574ade24c11808822e46a592",
+      "bytes": 1066499,
+      "jpeg_quality": 90,
+      "processing": "Native 2:1 full-sphere generation; half-turn solely for masked rear-seam inpainting; composite only masked strip (13% total width; 32px feather); undo half-turn; horizontal periodic-plus-smooth illumination correction; uniform Lanczos 4096x2048 upscale; embed sRGB ICC, progressive JPEG. No 16:9 input, no anisotropic stretch, no mirrored panorama expansion. Not native 4K."
+    },
+    {
+      "path": "course/assets/vr/suitang/e03.jpg",
+      "generated": "2026-10-24",
+      "model_requested": "gpt-image-2",
+      "endpoint": "https://www.cctq.ai/v1",
+      "mode": "generate + masked seam edit",
+      "requested_size": "3840x1920",
+      "returned_size": [
+        1774,
+        887
+      ],
+      "final_size": [
+        4096,
+        2048
+      ],
+      "prompt": "Create a FULL SPHERICAL EQUIRECTANGULAR ENVIRONMENT MAP, latitude-longitude projection, 360 degrees horizontal by 180 degrees vertical, 2:1 rectangular texture for the INSIDE of a VR sphere. This geometric projection is essential. One stationary camera at human eye height. y=0 is zenith directly overhead, y=0.5 is the level horizon, y=1 is nadir directly underneath. Upper half depicts full overhead sky, lower half depicts surrounding ground/water down to the camera's feet; natural horizontal polar stretching towards the very top and bottom as required by lat-long projection. The first and last columns look in the SAME rearward direction and MUST join seamlessly in geometry, color and lighting. Small figures near the equator; distant landmarks spread around the entire circle, nothing important touching the seam. No image-wide single vanishing point. This is the unwrapped COMPLETE surroundings of ONE viewpoint, not a wide-angle picture or a poster. Scene: 756 CE Tongguan mountain pass in the Chinese loess plateau, cold overcast daylight. The camera stands on an open part of the mountain path. At x=0.5 ahead a modest Tang fortified gate between steep yellow-earth cliffs; x=0.25 left Tang column moving towards the gate; x=0.75 right a few Yan rebel archers concealed on rocky slopes. Behind the viewer, x=0 and x=1 both show the SAME quiet winding Guanzhong path between distant cliffs, with matching ridge silhouettes and light. Chinese Tang lamellar armor, simple helmets, spears, bows, shields, unmarked pennants, dust and restrained smoke. Figures small near horizon, no large person at seam or bottom pole. Overhead cloud at top; rocky ground directly beneath camera at bottom.  Muted mineral pigments, azurite blue, malachite, ochre, small warm light accents, aged silk and ink wash texture, restrained historical reconstruction illustration, not a photograph. Plain unmarked cloth pennants only. NO text or Chinese characters, NO readable documents, NO calligraphy, NO writing or insignia on flags, NO labels or maps, NO watermark or logo, no modern objects, no firearms or cannons, no explosions or gore, no exposed wounds, no recognizable real faces, no Japanese samurai armor, no European knights, no Ming/Qing palace or yellow glazed roofs, no Qing queue, no fantasy armor, no anime or 3D-render aesthetic, no fisheye circle, no border, no mirrored duplicate army, no visible stitching or disconnected horizon. Output only one seamless 2:1 lat-long spherical panorama.",
+      "seam_edit_prompt": "Use case: precise-object-edit\nEdit target: this is a longitude-rotated complete 360x180-degree spherical equirectangular panorama. The original left-right boundary has been moved to the middle of this input for repair. Modify ONLY the narrow transparent vertical strip of the provided mask, where a join runs vertically down the image center. Preserve all other content, subject locations, colors, atmosphere, and equirectangular projection exactly. Within the strip, reconstruct physically continuous surrounding scenery that naturally connects to the intact textures on both sides. Continue existing shapes and contours, clouds/ceiling above, horizon at exactly 50%, ground/floor below; remove vertical brightness boundaries, jagged horizon steps, split doors, or terrain discontinuities. This region is the rear environment, do not add a new emperor, army, castle or any focal subject. Preserve all visible nonmasked soldiers, officials, buildings, and empty overhead/underfoot areas. Maintain the full 2:1 latitude-longitude spherical map, 360 degrees horizontally and 180 vertically. NO text, no characters, no calligraphy, no labels, no symbols, no new banners, no watermark, no logo, no modern elements, no gore, no Ming/Qing palaces, no samurai or European knights. Output one seamless equirectangular environment texture, same orientation as the input. Do not rotate or crop the image.",
+      "source_sha256": "6cd3f84207d4bb938b6070b1a696276601dab88693194ade0e621175f03d2579",
+      "seam_edit_sha256": "f59af7b22e912fc13fbdf1307bdbe9d75ed36f267a3ba61859a016c4238c30d6",
+      "sha256": "1086634312edd8423deb74691525bf2807a3ec3b189dd77d50fe23444d809322",
+      "bytes": 1194150,
+      "jpeg_quality": 89,
+      "processing": "Native 2:1 full-sphere generation; half-turn solely for masked rear-seam inpainting; composite only masked strip (13% total width; 32px feather); undo half-turn; horizontal periodic-plus-smooth illumination correction; uniform Lanczos 4096x2048 upscale; embed sRGB ICC, progressive JPEG. No 16:9 input, no anisotropic stretch, no mirrored panorama expansion. Not native 4K."
+    }
+  ]
+}

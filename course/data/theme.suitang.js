@@ -185,6 +185,14 @@ window.HISTORY_THEMES.suitang = {
       impact: "长安门户洞开，玄宗被迫西逃。",
       ask: { q: "潼关失守的主要原因是什么？", a: "唐玄宗、杨国忠催逼哥舒翰放弃坚守、出关决战；唐军在中伏后大败，潼关失守。战略决策失误是主因。" },
       image: { file: "assets/events/suitang/e03.jpg", alt: "潼关山隘唐军溃败的艺术复原示意。", promptId: "suitang-e03", credit: "AI 艺术复原示意" },
+      vr: {
+        pano: "assets/vr/suitang/e03.jpg",
+        hotspots: [
+          { x: 0.50, y: 0.51, label: "潼关关隘", text: "756 年唐军被迫出关决战，战败后潼关失守，长安门户洞开。" },
+          { x: 0.39, y: 0.56, label: "出关唐军", text: "哥舒翰所部出关的艺术复原场景，不代表精确阵型与兵力。" },
+          { x: 0.70, y: 0.51, label: "山坡伏兵", text: "山坡上的燕军伏兵表现山隘作战风险，地形与站位为艺术复原示意。" }
+        ]
+      },
       focus: { dist: 16, az: -12, polar: 52 },
       historiography: { level: "consensus", note: "哥舒翰被俘后投降的细节各书略有差异；“被迫出关”为教材共识。" },
       sources: [

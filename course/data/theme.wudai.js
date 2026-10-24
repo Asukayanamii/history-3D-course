@@ -486,9 +486,9 @@ window.HISTORY_THEMES.wudai = {
       vr: {
         pano: "assets/vr/wudai/e06.jpg",
         hotspots: [
-          { x: 0.40, y: 0.50, label: "柴荣督战", text: "后周世宗柴荣亲临阵前，督军反击。" },
-          { x: 0.35, y: 0.62, label: "后周盾阵", text: "后周步兵结阵，承受北汉与辽军冲击。" },
-          { x: 0.62, y: 0.52, label: "北汉 / 辽骑兵", text: "北汉与辽军骑兵从侧翼压来，队形为情景示意。" }
+          { x: 0.15, y: 0.57, label: "柴荣督战", text: "后周世宗柴荣亲临阵前，督军反击；人物位置为艺术复原示意。" },
+          { x: 0.49, y: 0.62, label: "后周盾阵", text: "后周步兵结阵，承受北汉与辽军冲击。" },
+          { x: 0.80, y: 0.61, label: "北汉辽骑", text: "北汉与辽军骑兵从侧翼压来，队形为情景示意。" }
         ]
       },
       focus: { dist: 20, az: -14, polar: 52 },
@@ -519,7 +519,7 @@ window.HISTORY_THEMES.wudai = {
       result: "后周军政、财政、法律与漕运得到整顿，国力增强。",
       impact: "为北宋统一奠定制度与军事基础；限制佛教等措施也有社会代价，需并陈。",
       ask: { q: "世宗改革包括哪些方面？为什么说它为北宋统一奠定了基础？", a: "包括整顿禁军、均定田赋、整顿吏治、限制佛教与铸钱、编定刑统、疏浚漕运等；这些措施增强了后周的财政与军力，也为北宋承接制度与统一条件打下基础。" },
-      image: { file: "assets/events/wudai/e11.jpg", alt: "后周世宗柴荣与大臣在汴州朝堂议政的艺术复原占位图。", promptId: "wudai-e11", credit: "占位 · 待 GPT-Image2 替换" },
+      image: { file: "assets/events/wudai/e11.jpg", alt: "冬晨汴州木构朝堂内，柴荣居御座、文官两列、禁军将领在侧，屏风与烛光映衬的艺术复原示意。", promptId: "wudai-e11", credit: "AI 艺术复原示意" },
       focus: { dist: 28, az: 0, polar: 46 },
       historiography: { level: "debate", note: "改革措施与为统一奠定基础是教材共识；限佛/废寺的规模、社会代价与评价存在不同侧重，课堂应并陈。" },
       sources: [
@@ -533,9 +533,9 @@ window.HISTORY_THEMES.wudai = {
       vr: {
         pano: "assets/vr/wudai/e11.jpg",
         hotspots: [
-          { x: 0.50, y: 0.47, label: "柴荣", text: "后周世宗，主持军政、赋税、法制与漕运整顿。" },
-          { x: 0.40, y: 0.60, label: "宰相", text: "朝堂议政的角色化呈现，不是史料原文。" },
-          { x: 0.62, y: 0.61, label: "大臣", text: "户部、御史、禁军将领围绕改革措施发言。" }
+          { x: 0.50, y: 0.50, label: "柴荣", text: "后周世宗，主持军政、赋税、法制与漕运整顿。" },
+          { x: 0.26, y: 0.55, label: "宰相", text: "朝堂议政的角色化呈现，不是史料原文。" },
+          { x: 0.80, y: 0.54, label: "禁军将领", text: "军政整顿中的将领角色；人物面貌与站位为艺术复原示意。" }
         ]
       },
       scene: {
@@ -604,9 +604,9 @@ window.HISTORY_THEMES.wudai = {
       vr: {
         pano: "assets/vr/wudai/e07.jpg",
         hotspots: [
-          { x: 0.58, y: 0.48, label: "寿州城楼", text: "南唐守军据城坚守，后周军多次强攻。" },
-          { x: 0.42, y: 0.59, label: "淮河浮桥", text: "后周军队渡河、攻城，画面为艺术复原示意。" },
-          { x: 0.34, y: 0.64, label: "后周军", text: "后周军以步兵、水军与民夫协同攻城。" }
+          { x: 0.50, y: 0.47, label: "寿州城楼", text: "南唐守军据城坚守，后周军多次强攻。" },
+          { x: 0.29, y: 0.55, label: "淮河浮桥", text: "后周军队渡河、攻城，画面为艺术复原示意。" },
+          { x: 0.73, y: 0.50, label: "攻城器械", text: "后周军以步兵、水军与攻城器械协同作战；器械配置为教学情景示意。" }
         ]
       },
       focus: { dist: 24, az: 12, polar: 48 },
@@ -649,9 +649,9 @@ window.HISTORY_THEMES.wudai = {
       vr: {
         pano: "assets/vr/wudai/e08.jpg",
         hotspots: [
-          { x: 0.58, y: 0.49, label: "瓦桥关", text: "后周收复瓦桥、益津、淤口三关，逼近幽州。" },
-          { x: 0.38, y: 0.61, label: "后周骑兵", text: "后周骑兵北出关城，辽军远退。" },
-          { x: 0.66, y: 0.39, label: "燕山", text: "燕山—长城一线是中原与辽对峙的地理屏障。" }
+          { x: 0.50, y: 0.54, label: "瓦桥关", text: "后周收复瓦桥、益津、淤口三关，逼近幽州。" },
+          { x: 0.20, y: 0.57, label: "后周骑兵", text: "后周骑兵北出关城，辽军远退。" },
+          { x: 0.83, y: 0.57, label: "辽军远退", text: "远方契丹骑兵的艺术复原位置，不代表精确历史行军路线。" }
         ]
       },
       focus: { dist: 18, az: 14, polar: 50 },

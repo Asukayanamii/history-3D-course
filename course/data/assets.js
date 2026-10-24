@@ -6,7 +6,7 @@
  */
 window.ASSET_MANIFEST = {
   version: "1.0.0",
-  updated: "2026-10-23",
+  updated: "2026-10-24",
   items: [
     { id: "bg", theme: "", kind: "image", path: "assets/ui/bg.jpg", spec: "1920x1080 JPEG, sRGB, 16:9, no text/watermark, ≤600KB", provider: "gpt-image2", priority: "P0", status: "ready", promptDoc: "docs/prompts/03_GPT-Image2_美术资产.md", usedBy: ["index.html#bg"], note: "2026-10-23 / gpt-image-2 via cctq.ai" },
     { id: "wudai-cover", theme: "wudai", kind: "image", path: "assets/ui/cover-wudai.jpg", spec: "1920x1080 JPEG, sRGB, 16:9, no text/watermark, 上方留暗部叠标题", provider: "gpt-image2", priority: "P0", status: "ready", promptDoc: "docs/prompts/03_GPT-Image2_美术资产.md", usedBy: ["theme.wudai.js#meta.cover"], note: "2026-10-23 / gpt-image-2 via cctq.ai" },
@@ -22,7 +22,7 @@ window.ASSET_MANIFEST = {
     { id: "wudai-e08", theme: "wudai", kind: "image", path: "assets/events/wudai/e08.jpg", spec: "1920x1080 JPEG, sRGB, 16:9, no text/watermark, ≤600KB", provider: "gpt-image2", priority: "P0", status: "ready", promptDoc: "docs/history/五代十国_图片脚本.md", usedBy: ["theme.wudai.js#e08"], note: "2026-10-23 / gpt-image-2 via cctq.ai" },
     { id: "wudai-e09", theme: "wudai", kind: "image", path: "assets/events/wudai/e09.jpg", spec: "1920x1080 JPEG, sRGB, 16:9, no text/watermark, ≤600KB", provider: "gpt-image2", priority: "P1", status: "ready", promptDoc: "docs/history/五代十国_图片脚本.md", usedBy: ["theme.wudai.js#e09"], note: "2026-10-23 / gpt-image-2 via cctq.ai" },
     { id: "wudai-e10", theme: "wudai", kind: "image", path: "assets/events/wudai/e10.jpg", spec: "1920x1080 JPEG, sRGB, 16:9, no text/watermark, ≤600KB", provider: "gpt-image2", priority: "P0", status: "ready", promptDoc: "docs/history/五代十国_图片脚本.md", usedBy: ["theme.wudai.js#e10"], note: "2026-10-23 / gpt-image-2 via cctq.ai" },
-    { id: "wudai-e11", theme: "wudai", kind: "image", path: "assets/events/wudai/e11.jpg", spec: "1920x1080 JPEG, sRGB, 16:9, no text/watermark, ≤600KB", provider: "procedural", priority: "P1", status: "placeholder", promptDoc: "docs/history/五代十国_图片脚本.md", usedBy: ["theme.wudai.js#e11"], note: "程序化朝堂占位图（tools/build_vr_panos.py）；待 GPT-Image2 真插画替换" },
+    { id: "wudai-e11", theme: "wudai", kind: "image", path: "assets/events/wudai/e11.jpg", spec: "1920x1080 JPEG, sRGB, 16:9, no text/watermark, ≤600KB", provider: "gpt-image2", priority: "P1", status: "ready", promptDoc: "docs/history/五代十国_图片脚本.md", usedBy: ["theme.wudai.js#e11"], note: "2026-10-23 / GPT-Image2 真插画" },
     { id: "suitang-e01", theme: "suitang", kind: "image", path: "assets/events/suitang/e01.jpg", spec: "1920x1080 JPEG, sRGB, 16:9, no text/watermark, ≤600KB", provider: "gpt-image2", priority: "P1", status: "ready", promptDoc: "docs/history/隋唐_图片脚本.md", usedBy: ["theme.suitang.js#e01"], note: "2026-10-23 / gpt-image-2 via cctq.ai" },
     { id: "suitang-e02", theme: "suitang", kind: "image", path: "assets/events/suitang/e02.jpg", spec: "1920x1080 JPEG, sRGB, 16:9, no text/watermark, ≤600KB", provider: "gpt-image2", priority: "P1", status: "ready", promptDoc: "docs/history/隋唐_图片脚本.md", usedBy: ["theme.suitang.js#e02"], note: "2026-10-23 / gpt-image-2 via cctq.ai" },
     { id: "suitang-e03", theme: "suitang", kind: "image", path: "assets/events/suitang/e03.jpg", spec: "1920x1080 JPEG, sRGB, 16:9, no text/watermark, ≤600KB", provider: "gpt-image2", priority: "P1", status: "ready", promptDoc: "docs/history/隋唐_图片脚本.md", usedBy: ["theme.suitang.js#e03"], note: "2026-10-23 / gpt-image-2 via cctq.ai" },
@@ -37,25 +37,34 @@ window.ASSET_MANIFEST = {
   ]
 };
 
-/* v0.4：24 张事件图的 2:1 全景示意（tools/build_vr_panos.py 生成） */
+/* v0.4：事件图全景；未替换槽位仍为程序化 2:1 示意，P0 槽位为 GPT-Image2 真 2:1 环境图。 */
 (function () {
   var ids = [];
   ["wudai/e01","wudai/e02","wudai/e03","wudai/e04","wudai/e05","wudai/e06","wudai/e07","wudai/e08","wudai/e09","wudai/e10","wudai/e11",
    "suitang/e01","suitang/e02","suitang/e03","suitang/e04","suitang/e05","suitang/e06",
    "song/e01","song/e02","song/e03","song/e04"].forEach(function (id) { ids.push(id); });
+  var truePanos = {
+    "wudai/e06": true,
+    "wudai/e07": true,
+    "wudai/e08": true,
+    "wudai/e11": true,
+    "song/e03": true,
+    "suitang/e03": true
+  };
   var panos = ids.map(function (id) {
+    var isTrue = !!truePanos[id];
     return {
       id: "vr-" + id.replace("/", "-"),
       theme: id.split("/")[0],
       kind: "pano",
       path: "assets/vr/" + id + ".jpg",
-      spec: "4096x2048 JPEG, 2:1 equirectangular placeholder",
-      provider: "procedural",
-      priority: "P1",
+      spec: isTrue ? "4096x2048 JPEG, sRGB, 2:1 equirectangular, ≤1.2MB (upscaled from 1774x887)" : "4096x2048 JPEG, 2:1 equirectangular placeholder",
+      provider: isTrue ? "gpt-image2" : "procedural",
+      priority: isTrue ? "P0" : "P1",
       status: "ready",
-      promptDoc: "docs/prompts/04_GPT-Image2_VR全景.md",
+      promptDoc: isTrue ? "docs/handoff/IMAGE_ASSETS_2026-10-24.json" : "docs/prompts/04_GPT-Image2_VR全景.md",
       usedBy: ["js/vr360.js"],
-      note: "由 16:9 AI 插画扩展的 2:1 全景示意，非全景摄影；可替换为 GPT-Image2 真全景"
+      note: isTrue ? "2026-10-24 / GPT-Image2 真 2:1 全景；直接生成球面环境并修补接缝，1774×887 等比上采样至 4096×2048，非原生 4K；AI 艺术复原，非历史影像" : "由 16:9 AI 插画扩展的 2:1 全景示意，非全景摄影；可替换为 GPT-Image2 真全景"
     };
   });
   window.ASSET_MANIFEST.items = window.ASSET_MANIFEST.items.concat(panos);

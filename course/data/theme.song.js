@@ -180,6 +180,14 @@ window.HISTORY_THEMES.song = {
       impact: "宋辽进入议和窗口。",
       ask: { q: "宋真宗亲征对澶渊之盟有什么影响？", a: "亲征提振了宋军士气，使宋方在议和中不至于完全被动；但真宗与部分大臣仍倾向求和，最终以岁币换取和平。" },
       image: { file: "assets/events/song/e03.jpg", alt: "宋真宗亲征澶州、黄河渡口营帐与军阵的艺术复原示意。", promptId: "song-e03", credit: "AI 艺术复原示意" },
+      vr: {
+        pano: "assets/vr/song/e03.jpg",
+        hotspots: [
+          { x: 0.50, y: 0.52, label: "澶州城楼", text: "1004 年冬，宋真宗亲临澶州，提振宋军士气。城楼为艺术复原示意。" },
+          { x: 0.23, y: 0.56, label: "黄河浮桥", text: "黄河渡口与浮桥连接两岸，画面不代表精确历史水道与桥位。" },
+          { x: 0.84, y: 0.54, label: "宋军阵列", text: "宋军驻守河岸；兵力、甲胄细节与阵型为教学情景示意。" }
+        ]
+      },
       focus: { dist: 18, az: -8, polar: 50 },
       historiography: { level: "consensus", note: "真宗亲征的具体日期与渡河细节各书略有差异；寇准力主亲征为教材共识。" },
       sources: [
