@@ -507,6 +507,9 @@
     war.speed = S.speed || 1;
     return war;
   }
+  // 路线轨迹来自 orders，只建一次几何；显隐与生长长度由 warUpdateVisuals 按
+  // unit.moveT 驱动。普通行动 = 阵营色核心 + 加法光带 + 前向箭头；撤退 = 冷色
+  // 虚线 + 反向箭头。路线只表达当前/计划行动方向，不是精确行军路线。
   function warBuildRoutes(war) {
     var group = new THREE.Group();
     war.routeGroup = group;
@@ -518,34 +521,67 @@
         var next = u.def.orders[i + 1];
         if (from && to && from.id !== to.id) {
           var g = new THREE.Group();
-          var p1 = new THREE.Vector3(from.cx, warHeight(war, from.cx, from.cz) + 1.2, from.cz);
-          var p2 = new THREE.Vector3(to.cx, warHeight(war, to.cx, to.cz) + 1.2, to.cz);
           var retreat = o.type === "retreat";
           var color = retreat ? "#9fb3c9" : sideColor(war, u.side);
+          var pts = [];
+          var ox = ((u.index % 3) - 1) * 8.0;
+          var oz = ((Math.floor(u.index / 3) % 3) - 1) * 4.2;
+          for (var k = 0; k <= 4; k++) {
+            var f = k / 4;
+            var x = U.lerp(from.cx + ox, to.cx + ox, f), z = U.lerp(from.cz + oz, to.cz + oz, f);
+            pts.push(new THREE.Vector3(x, warHeight(war, x, z) + 1.15 + Math.sin(Math.PI * f) * 0.9, z));
+          }
+          var curve = new THREE.CatmullRomCurve3(pts);
+          var r = {
+            group: g, curve: curve, start: o.at, end: next ? next.at : 1,
+            unit: u, type: o.type, orderIndex: i, from: from.id, to: to.id,
+            retreat: retreat, tubularSegments: 24, radialSegments: 6,
+            pos: new THREE.Vector3(), dir: new THREE.Vector3(),
+            up: new THREE.Vector3(0, 1, 0)
+          };
           if (retreat) {
-            var mid = p1.clone().lerp(p2, 0.5); mid.y = Math.max(p1.y, p2.y) + 1.2;
-            var lineGeo = new THREE.BufferGeometry().setFromPoints([p1, mid, p2]);
+            var linePts = [];
+            for (var lp = 0; lp <= r.tubularSegments; lp++) linePts.push(curve.getPointAt(lp / r.tubularSegments));
+            var lineGeo = new THREE.BufferGeometry().setFromPoints(linePts);
             var line = new THREE.Line(lineGeo, new THREE.LineDashedMaterial({
-              color: color, dashSize: 1.0, gapSize: 0.7, transparent: true, opacity: 0.8
+              color: color, dashSize: 1.0, gapSize: 0.7, transparent: true, opacity: 0.72, depthWrite: false
             }));
             line.computeLineDistances();
+            line.geometry.setDrawRange(0, 0);
+            line.renderOrder = 9;
             g.add(line);
+            r.line = line;
+            r.linePoints = linePts.length;
           } else {
-            var mid2 = p1.clone().lerp(p2, 0.5); mid2.y = Math.max(p1.y, p2.y) + 2.2;
-            var curve = new THREE.CatmullRomCurve3([p1, mid2, p2]);
-            var tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 18, 0.2, 5, false),
-              new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.92 }));
-            g.add(tube);
-            var dir = p2.clone().sub(p1).normalize();
-            var cone = new THREE.Mesh(new THREE.ConeGeometry(0.65, 1.6, 8),
-              new THREE.MeshBasicMaterial({ color: color }));
-            cone.position.copy(p2).sub(dir.clone().multiplyScalar(0.35));
-            cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
-            g.add(cone);
+            var coreGeo = new THREE.TubeGeometry(curve, r.tubularSegments, 0.28, r.radialSegments, false);
+            var core = new THREE.Mesh(coreGeo, new THREE.MeshBasicMaterial({
+              color: color, transparent: true, opacity: 0.95, depthWrite: false
+            }));
+            core.geometry.setDrawRange(0, 0);
+            core.renderOrder = 9;
+            var glowGeo = new THREE.TubeGeometry(curve, r.tubularSegments, 0.8, r.radialSegments, false);
+            var glow = new THREE.Mesh(glowGeo, new THREE.MeshBasicMaterial({
+              color: color, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false
+            }));
+            glow.geometry.setDrawRange(0, 0);
+            glow.renderOrder = 8;
+            g.add(glow, core);
+            r.core = core;
+            r.glow = glow;
+            r.glowBase = 0.2;
+            r.indexPerSegment = r.radialSegments * 6;
+            r.maxIndex = coreGeo.index.count;
           }
+          var head = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.5, 8),
+            new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: retreat ? 0.78 : 0.94, depthWrite: false }));
+          head.renderOrder = 10;
+          head.visible = false;
+          g.add(head);
+          r.head = head;
+          r.headHeight = 1.5;
           g.visible = false;
           group.add(g);
-          war.routeObjs.push({ group: g, start: o.at, end: next ? next.at : 1, unit: u, type: o.type });
+          war.routeObjs.push(r);
         }
         prev = o.to;
       });
@@ -1096,7 +1132,32 @@
     }
     var t = war.time / (war.data.duration || 30);
     (war.routeObjs || []).forEach(function (r) {
-      if (r.group) r.group.visible = t >= r.start && t <= r.end;
+      var active = t >= r.start && t <= r.end;
+      r.group.visible = active;
+      if (!active) { if (r.head) r.head.visible = false; return; }
+      var current = r.unit && r.unit.orderIndex === r.orderIndex && r.unit.target === r.to;
+      var progress = current ? U.easeInOutCubic(U.clamp(r.unit.moveT, 0, 1)) : 1;
+      if (r.retreat) {
+        var n = progress <= 0 ? 0 : Math.min(r.linePoints, Math.ceil(progress * (r.linePoints - 1)) + 1);
+        r.line.geometry.setDrawRange(0, n);
+      } else {
+        var count = Math.min(r.maxIndex, Math.ceil(progress * r.tubularSegments) * r.indexPerSegment);
+        r.core.geometry.setDrawRange(0, count);
+        r.glow.geometry.setDrawRange(0, count);
+        // 光带脉冲只跟推演时间走，保证 restart / goToPhase / setTime 在同一时刻一致。
+        r.glow.material.opacity = r.glowBase * (0.85 + 0.15 * Math.sin(war.time * 3.2 + r.unit.index * 0.9 + r.orderIndex * 0.7));
+      }
+      if (progress <= 0.0001) {
+        r.head.visible = false;
+      } else {
+        r.head.visible = true;
+        r.curve.getPointAt(progress, r.pos);
+        r.curve.getTangentAt(progress, r.dir);
+        if (r.retreat) r.dir.negate();
+        if (r.retreat) r.head.position.copy(r.pos);
+        else r.head.position.copy(r.pos).addScaledVector(r.dir, r.headHeight * 0.5);
+        r.head.quaternion.setFromUnitVectors(r.up, r.dir);
+      }
     });
     warUpdateBattles(war, dt);
     warUpdateUI(war, false);

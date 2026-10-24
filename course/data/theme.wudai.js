@@ -344,7 +344,7 @@ window.HISTORY_THEMES.wudai = {
         type: "war",
         title: "高平之战 · 兵棋推演",
         subtitle: "954 年 · 后周 vs 北汉 / 辽",
-        note: "地形为 SRTM 真实高程（垂直夸张），省份、兵力、战线为战术示意，不是精确历史阵图。",
+        note: "地形为 SRTM 真实高程（垂直夸张），省份、兵力、战线为战术示意，不是精确历史阵图；路线为当前行动方向，战术示意。",
         duration: 30,
         tick: 0.1,
         seed: 954,
